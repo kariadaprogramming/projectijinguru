@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistem Izin Keluar Masuk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-id-card"></i> Sistem Izin
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" data-page="dashboard">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-page="teachers">
+                            <i class="fas fa-users"></i> Data Guru
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-page="permissions">
+                            <i class="fas fa-door-open"></i> Izin/Keluar
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-page="devices">
+                            <i class="fas fa-microchip"></i> Device
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-page="logs">
+                            <i class="fas fa-history"></i> Logs
+                        </a>
+                    </li>
+                </ul>
+                <div class="navbar-nav">
+                    <span class="nav-item nav-link" id="currentTime">
+                        <i class="fas fa-clock"></i> <span id="witaTime">--:--:--</span> WITA
+                    </span>
+                    <button class="btn btn-sm btn-light ms-2" id="refreshBtn" type="button" onclick="window.location.reload()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                    <span class="nav-item nav-link" id="userInfo">
+                        <i class="fas fa-user"></i> <span id="userName">Admin</span>
+                    </span>
+                    <a class="nav-item nav-link" href="#" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <!-- Dashboard Page -->
+                <div id="dashboardPage" class="page active">
+                    <h2 class="page-title"><i class="fas fa-chart-line"></i> Dashboard</h2>
+                    <div class="stats-cards">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-primary">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="totalTeachers">0</h3>
+                                <p>Total Guru</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-success">
+                                <i class="fas fa-calendar-day"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="todayPermissions">0</h3>
+                                <p>Izin Hari Ini</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-info">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="monthPermissions">0</h3>
+                                <p>Izin Bulan Ini</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-warning">
+                                <i class="fas fa-door-open"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="activePermissions">0</h3>
+                                <p>Sedang Izin</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-lg-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-door-open"></i> Guru Sedang Izin</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Nama</th>
+                                                    <th>Jenis</th>
+                                                    <th>Waktu Keluar</th>
+                                                    <th>Durasi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="activePermissionsTable">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-history"></i> Logs Terbaru</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Waktu</th>
+                                                    <th>Nama</th>
+                                                    <th>Aksi</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="recentLogsTable">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teachers Page -->
+                <div id="teachersPage" class="page">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="page-title"><i class="fas fa-users"></i> Data Guru</h2>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTeacherModal">
+                            <i class="fas fa-plus"></i> Tambah Guru
+                        </button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>RFID ID</th>
+                                            <th>Nama Lengkap</th>
+                                            <th>Jenis</th>
+                                            <th>No HP</th>
+                                            <th>Telegram Chat ID</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="teachersTable">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Permissions Page -->
+                <div id="permissionsPage" class="page">
+                    <h2 class="page-title"><i class="fas fa-door-open"></i> Izin/Keluar Guru</h2>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="fas fa-filter"></i> Filter</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label class="form-label">Tanggal Mulai</label>
+                                    <input type="date" class="form-control" id="filterStartDate">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Tanggal Akhir</label>
+                                    <input type="date" class="form-control" id="filterEndDate">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Guru</label>
+                                    <select class="form-select" id="filterTeacher">
+                                        <option value="">Semua Guru</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div>
+                                        <button class="btn btn-primary" id="filterBtn">
+                                            <i class="fas fa-search"></i> Filter
+                                        </button>
+                                        <button class="btn btn-secondary" id="resetFilterBtn">
+                                            <i class="fas fa-redo"></i> Reset
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="fas fa-door-open"></i> Guru Sedang Izin (Real-time)</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Nama</th>
+                                            <th>Jenis</th>
+                                            <th>Waktu Keluar</th>
+                                            <th>Durasi Waktu</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="activePermissionsFullTable">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5><i class="fas fa-history"></i> Riwayat Izin Harian</h5>
+                            <div>
+                                <button class="btn btn-success btn-sm" id="exportExcelBtn">
+                                    <i class="fas fa-file-excel"></i> Export Excel
+                                </button>
+                                <button class="btn btn-info btn-sm" id="printBtn">
+                                    <i class="fas fa-print"></i> Print
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table" id="historyTable">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Nama</th>
+                                            <th>Jenis</th>
+                                            <th>Waktu Keluar</th>
+                                            <th>Waktu Masuk</th>
+                                            <th>Durasi Waktu</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="historyTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5><i class="fas fa-calendar-alt"></i> Rekap Bulanan</h5>
+                            <div>
+                                <button class="btn btn-success btn-sm" id="exportMonthlyExcelBtn">
+                                    <i class="fas fa-file-excel"></i> Export Excel
+                                </button>
+                                <button class="btn btn-primary btn-sm" id="exportMonthlyWordBtn">
+                                    <i class="fas fa-file-word"></i> Export Word
+                                </button>
+                                <button class="btn btn-info btn-sm" id="printMonthlyBtn">
+                                    <i class="fas fa-print"></i> Print
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label class="form-label">Bulan</label>
+                                    <select class="form-select" id="monthSelect">
+                                        <option value="1">Januari</option>
+                                        <option value="2">Februari</option>
+                                        <option value="3">Maret</option>
+                                        <option value="4">April</option>
+                                        <option value="5">Mei</option>
+                                        <option value="6">Juni</option>
+                                        <option value="7">Juli</option>
+                                        <option value="8">Agustus</option>
+                                        <option value="9">September</option>
+                                        <option value="10">Oktober</option>
+                                        <option value="11">November</option>
+                                        <option value="12">Desember</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Tahun</label>
+                                    <select class="form-select" id="yearSelect">
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button class="btn btn-primary" id="loadMonthlyBtn">
+                                        <i class="fas fa-search"></i> Tampilkan
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-responsive mt-3">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Nama</th>
+                                            <th>Jenis</th>
+                                            <th>Waktu Keluar</th>
+                                            <th>Waktu Masuk</th>
+                                            <th>Durasi Waktu</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="monthlyTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Devices Page -->
+                <div id="devicesPage" class="page">
+                    <h2 class="page-title"><i class="fas fa-microchip"></i> Status Device IoT</h2>
+                    <div class="row" id="devicesContainer">
+                    </div>
+                </div>
+
+                <!-- Logs Page -->
+                <div id="logsPage" class="page">
+                    <h2 class="page-title"><i class="fas fa-history"></i> Logs RFID</h2>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Waktu</th>
+                                            <th>RFID ID</th>
+                                            <th>Nama</th>
+                                            <th>Aksi</th>
+                                            <th>Status</th>
+                                            <th>Pesan</th>
+                                            <th>Device ID</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="logsTable">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Teacher Modal -->
+    <div class="modal fade" id="addTeacherModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-plus"></i> Tambah Guru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addTeacherForm">
+                        <div class="mb-3">
+                            <label class="form-label">RFID ID</label>
+                            <input type="text" class="form-control" id="teacherRfid" required>
+                            <small class="text-muted">Tap kartu RFID untuk mendapatkan ID</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nama Lengkap</label>
+                            <input type="text" class="form-control" id="teacherName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Jenis</label>
+                            <select class="form-select" id="teacherType" required>
+                                <option value="guru">Guru</option>
+                                <option value="pegawai">Pegawai</option>
+                                <option value="staff">Staff</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">No HP</label>
+                            <input type="text" class="form-control" id="teacherPhone">
+                        </div>
+                        <!-- Telegram Chat ID hidden - otomatis menggunakan ID admin -->
+                        <input type="hidden" class="form-control" id="teacherTelegram" value="8079389732">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="saveTeacherBtn">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Teacher Modal -->
+    <div class="modal fade" id="editTeacherModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-edit"></i> Edit Guru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editTeacherForm">
+                        <input type="hidden" id="editTeacherId">
+                        <div class="mb-3">
+                            <label class="form-label">RFID ID</label>
+                            <input type="text" class="form-control" id="editTeacherRfid" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nama Lengkap</label>
+                            <input type="text" class="form-control" id="editTeacherName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Jenis</label>
+                            <select class="form-select" id="editTeacherType" required>
+                                <option value="guru">Guru</option>
+                                <option value="pegawai">Pegawai</option>
+                                <option value="staff">Staff</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">No HP</label>
+                            <input type="text" class="form-control" id="editTeacherPhone">
+                        </div>
+                        <!-- Telegram Chat ID hidden - otomatis menggunakan ID admin -->
+                        <input type="hidden" class="form-control" id="editTeacherTelegram" value="8079389732">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="updateTeacherBtn">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/dashboard.js"></script>
+    <style>
+        .status-out {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .status-in {
+            color: #198754;
+            font-weight: bold;
+        }
+        .duration-highlight {
+            color: #dc3545;
+            font-weight: bold;
+            background-color: #fff3cd;
+        }
+        .duration-normal {
+            color: #198754;
+        }
+    </style>
+</body>
+</html>

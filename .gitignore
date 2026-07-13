@@ -1,0 +1,38 @@
+# Environment variables
+.env
+
+# Dependencies
+node_modules/
+
+# Database files
+database/*.db
+database/*.sqlite
+database/*.sqlite3
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+temp/
+tmp/
+
+# Build files
+dist/
+build/
+
+# ESP32 build files
+esp32/.pio/
+esp32/.vscode/
+esp32/build/
