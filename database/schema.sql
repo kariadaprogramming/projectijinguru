@@ -2,7 +2,7 @@
 CREATE DATABASE IF NOT EXISTS sistem_izin;
 USE sistem_izin;
 
--- Users table (for admin accounts)
+-- Users table (for admin accounts)agus
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
