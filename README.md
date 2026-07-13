@@ -291,7 +291,7 @@ Login ke sistem
 ```json
 {
   "username": "admin1",
-  "password": "Skanbara2015"
+  "password": ""
 }
 ```
 
