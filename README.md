@@ -253,8 +253,8 @@ Untuk dokumentasi lengkap MQTT flow (subscribe/publish untuk setiap komponen), l
 
 | Username | Password | Role |
 |----------|----------|------|
-| admin1 | Skanbara2015 | Admin |
-| admin2 | Skanbara2015 | Admin |
+| admin1 |  | Admin |
+| admin2 |  | Admin |
 
 **Penting**: Ganti password default setelah login pertama!
 
@@ -291,7 +291,7 @@ Login ke sistem
 ```json
 {
   "username": "admin1",
-  "password": "Skanbara2015"
+  "password": ""
 }
 ```
 
