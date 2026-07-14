@@ -1087,10 +1087,11 @@ async function handleRFIDScan(data) {
         console.log(`[RFID Scan] RFID ID: ${rfid_id}, Device ID: ${device_id}`);
 
         // Log the scan
-        await db.query(
+        const [insertResult] = await db.query(
             'INSERT INTO rfid_logs (rfid_id, action, device_id) VALUES (?, ?, ?)',
             [rfid_id, 'unknown', device_id]
         );
+        const logId = insertResult.insertId;
 
         // Find teacher
         const [teachers] = await db.query('SELECT * FROM teachers WHERE rfid_id = ? AND is_active = true', [rfid_id]);
@@ -1098,8 +1099,8 @@ async function handleRFIDScan(data) {
         if (teachers.length === 0) {
             console.log(`[RFID Scan] Teacher not found for RFID ID: ${rfid_id}`);
             await db.query(
-                'UPDATE rfid_logs SET status = ?, message = ? WHERE id = LAST_INSERT_ID()',
-                ['error', 'RFID tidak terdaftar']
+                'UPDATE rfid_logs SET status = ?, message = ? WHERE id = ?',
+                ['error', 'RFID tidak terdaftar', logId]
             );
 
             // Send error response to device immediately
@@ -1211,8 +1212,8 @@ Jangan lupa tap kartu saat kembali!`;
 
         // Update log
         await db.query(
-            'UPDATE rfid_logs SET teacher_id = ?, action = ?, status = ?, message = ? WHERE id = LAST_INSERT_ID()',
-            [teacher.id, action, status, message]
+            'UPDATE rfid_logs SET teacher_id = ?, action = ?, status = ?, message = ? WHERE id = ?',
+            [teacher.id, action, status, message, logId]
         );
 
         // Send response to device via MQTT IMMEDIATELY (Server → ESP32)
@@ -1442,7 +1443,7 @@ app.post('/api/teachers', async (req, res) => {
             return res.status(400).json({ error: 'Nama guru sudah terdaftar' });
         }
 
-        await run(
+        await db.query(
             'INSERT INTO teachers (rfid_id, full_name, employee_type, phone_number, telegram_chat_id) VALUES (?, ?, ?, ?, ?)',
             [rfid_id, full_name, employee_type, phone_number, null]  // Set to NULL since notifications go to group
         );
