@@ -2,7 +2,7 @@
 CREATE DATABASE IF NOT EXISTS sistem_izin;
 USE sistem_izin;
 
--- Users table (for admin accounts)agus
+-- Users table (for admin accounts)
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
@@ -21,6 +21,9 @@ CREATE TABLE IF NOT EXISTS teachers (
     phone_number VARCHAR(20),
     telegram_chat_id VARCHAR(50),
     is_active BOOLEAN DEFAULT TRUE,
+    auto_return_enabled BOOLEAN DEFAULT FALSE,
+    auto_return_min_minutes INT DEFAULT 20,
+    auto_return_max_minutes INT DEFAULT 30,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

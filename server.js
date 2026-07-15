@@ -1001,7 +1001,17 @@ async function processMonthlyRecapWithSelection(chatId) {
 File telah dikirim. Anda dapat membukanya di perangkat Anda.
         `, { parse_mode: 'Markdown', ...keyboard });
 
-        fs.unlinkSync(filePath);
+        // Delete file after 5 minutes (300000 ms) to allow download time
+        setTimeout(() => {
+            try {
+                if (fs.existsSync(filePath)) {
+                    fs.unlinkSync(filePath);
+                    console.log(`Deleted temp file: ${filename}`);
+                }
+            } catch (error) {
+                console.error('Error deleting temp file:', error);
+            }
+        }, 300000);
         delete userStates[chatId];
     } catch (error) {
         console.error('Monthly recap error:', error);
@@ -1302,6 +1312,121 @@ setInterval(async () => {
     }
 }, 30000); // Every 30 seconds
 
+// Auto-Return Check (run every 30 seconds or configured interval)
+const autoReturnInterval = parseInt(process.env.AUTO_RETURN_CHECK_INTERVAL || '30') * 1000;
+setInterval(async () => {
+    await checkAutoReturn();
+}, autoReturnInterval);
+
+// Sync .env auto-return settings to database on server start
+async function syncAutoReturnSettings() {
+    try {
+        const autoReturnRFIDs = process.env.AUTO_RETURN_RFID_IDS || '';
+        const minMinutes = parseInt(process.env.AUTO_RETURN_MIN_MINUTES || '20');
+        const maxMinutes = parseInt(process.env.AUTO_RETURN_MAX_MINUTES || '30');
+
+        const rfidList = autoReturnRFIDs.split(',').map(id => id.trim()).filter(id => id);
+
+        console.log(`[Auto-Return] Syncing settings to database...`);
+        console.log(`[Auto-Return] RFID IDs: ${rfidList.join(', ')}`);
+        console.log(`[Auto-Return] Min: ${minMinutes} minutes, Max: ${maxMinutes} minutes`);
+
+        // Reset all teachers to auto_return_enabled = false
+        await db.query('UPDATE teachers SET auto_return_enabled = false, auto_return_min_minutes = ?, auto_return_max_minutes = ?', [minMinutes, maxMinutes]);
+
+        // Enable auto-return for specified RFID IDs
+        for (const rfidId of rfidList) {
+            await db.query(
+                'UPDATE teachers SET auto_return_enabled = true, auto_return_min_minutes = ?, auto_return_max_minutes = ? WHERE rfid_id = ?',
+                [minMinutes, maxMinutes, rfidId]
+            );
+            console.log(`[Auto-Return] Enabled for RFID ID: ${rfidId}`);
+        }
+
+        console.log(`[Auto-Return] Settings synced successfully!`);
+    } catch (error) {
+        console.error('[Auto-Return] Sync error:', error);
+    }
+}
+
+// Call sync on server start
+syncAutoReturnSettings();
+
+async function checkAutoReturn() {
+    try {
+        // Get active permissions for teachers with auto-return enabled
+        const [activePermissions] = await db.query(`
+            SELECT p.*, t.*, 
+                   TIMEDIFF(NOW(), p.check_out_time) as duration
+            FROM permissions p
+            JOIN teachers t ON p.teacher_id = t.id
+            WHERE p.status = 'out'
+            AND t.auto_return_enabled = true
+        `);
+
+        for (const permission of activePermissions) {
+            const checkOutTime = new Date(permission.check_out_time);
+            const now = new Date();
+            const durationMinutes = Math.floor((now - checkOutTime) / 60000);
+
+            const minMinutes = permission.auto_return_min_minutes || 20;
+            const maxMinutes = permission.auto_return_max_minutes || 30;
+
+            // Auto-return if duration is between min and max (24 hours, no time window restriction)
+            if (durationMinutes >= minMinutes && durationMinutes <= maxMinutes) {
+                console.log(`[Auto-Return] Auto-checking in: ${permission.full_name} (${durationMinutes} minutes)`);
+
+                // Update permission
+                await db.query(
+                    'UPDATE permissions SET check_in_time = ?, duration_minutes = ?, status = ? WHERE id = ?',
+                    [now, durationMinutes, 'in', permission.id]
+                );
+
+                // Log the auto-return
+                await db.query(
+                    'INSERT INTO rfid_logs (rfid_id, teacher_id, action, status, message, device_id) VALUES (?, ?, ?, ?, ?, ?)',
+                    [permission.rfid_id, permission.teacher_id, 'check_in', 'auto_return', `Auto-return after ${durationMinutes} minutes`, 'SYSTEM']
+                );
+
+                // Send notification to Telegram group
+                const groupChatId = process.env.TELEGRAM_GROUP_CHAT_ID || process.env.TELEGRAM_ADMIN_CHAT_ID;
+                if (groupChatId) {
+                    const checkInTimeWITA = now.toLocaleString('id-ID', {
+                        timeZone: 'Asia/Makassar',
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                    });
+
+                    const telegramMessage = `
+🔄 *AUTO-RETURN - Guru Kembali*
+
+👤 Nama: ${permission.full_name}
+📋 Jenis: ${permission.employee_type}
+🏷️ RFID ID: ${permission.rfid_id}
+📅 Waktu Kembali: ${checkInTimeWITA}
+⏱️ Durasi: ${durationMinutes} menit
+
+✅ Status: Otomatis kembali (Auto-return)
+                    `;
+
+                    telegramBot.sendMessage(groupChatId, telegramMessage, { parse_mode: 'Markdown' })
+                        .catch(error => console.error('Failed to send auto-return notification:', error));
+                }
+
+                console.log(`[Auto-Return] Successfully auto-checked in: ${permission.full_name}`);
+            }
+        }
+    } catch (error) {
+        console.error('Auto-return check error:', error);
+    }
+}
+
 // Socket.IO
 io.on('connection', (socket) => {
     console.log('Client connected');
@@ -1445,7 +1570,7 @@ app.post('/api/teachers', async (req, res) => {
 
         await db.query(
             'INSERT INTO teachers (rfid_id, full_name, employee_type, phone_number, telegram_chat_id) VALUES (?, ?, ?, ?, ?)',
-            [rfid_id, full_name, employee_type, phone_number, null]  // Set to NULL since notifications go to group
+            [rfid_id, full_name, employee_type, phone_number, null]
         );
 
         res.json({ message: 'Teacher added successfully' });
