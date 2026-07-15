@@ -45,6 +45,8 @@ async function connectDB() {
     try {
         db = await mysql.createConnection(dbConfig);
         console.log('Database connected successfully');
+        // Sync auto-return settings after database connection is established
+        syncAutoReturnSettings();
     } catch (error) {
         console.error('Database connection error:', error);
     }
@@ -1348,9 +1350,6 @@ async function syncAutoReturnSettings() {
         console.error('[Auto-Return] Sync error:', error);
     }
 }
-
-// Call sync on server start
-syncAutoReturnSettings();
 
 async function checkAutoReturn() {
     try {
