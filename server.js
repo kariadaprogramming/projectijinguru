@@ -1325,7 +1325,10 @@ async function syncAutoReturnSettings() {
     try {
         const autoReturnRFIDs = process.env.AUTO_RETURN_RFID_IDS || '';
         const minMinutes = parseInt(process.env.AUTO_RETURN_MIN_MINUTES || '20');
-        const maxMinutes = parseInt(process.env.AUTO_RETURN_MAX_MINUTES || '30');
+        // Check if AUTO_RETURN_MAX_MINUTES is explicitly set (including 0)
+        const maxMinutes = process.env.AUTO_RETURN_MAX_MINUTES !== undefined 
+            ? parseInt(process.env.AUTO_RETURN_MAX_MINUTES) 
+            : 30;
 
         const rfidList = autoReturnRFIDs.split(',').map(id => id.trim()).filter(id => id);
 
