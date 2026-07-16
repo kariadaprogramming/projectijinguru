@@ -1363,6 +1363,8 @@ async function checkAutoReturn() {
             AND t.auto_return_enabled = true
         `);
 
+        console.log(`[Auto-Return] Checking ${activePermissions.length} active permissions with auto-return enabled`);
+
         for (const permission of activePermissions) {
             const checkOutTime = new Date(permission.check_out_time);
             const now = new Date();
@@ -1371,9 +1373,11 @@ async function checkAutoReturn() {
             const minMinutes = permission.auto_return_min_minutes || 20;
             const maxMinutes = permission.auto_return_max_minutes || 30;
 
+            console.log(`[Auto-Return] Checking ${permission.full_name} (RFID: ${permission.rfid_id}) - Duration: ${durationMinutes} minutes, Min: ${minMinutes}, Max: ${maxMinutes}`);
+
             // Auto-return if duration is between min and max (24 hours, no time window restriction)
             if (durationMinutes >= minMinutes && durationMinutes <= maxMinutes) {
-                console.log(`[Auto-Return] Auto-checking in: ${permission.full_name} (${durationMinutes} minutes)`);
+                console.log(`[Auto-Return] ✅ Auto-checking in: ${permission.full_name} (${durationMinutes} minutes)`);
 
                 // Update permission
                 await db.query(
@@ -1419,6 +1423,8 @@ async function checkAutoReturn() {
                 }
 
                 console.log(`[Auto-Return] Successfully auto-checked in: ${permission.full_name}`);
+            } else {
+                console.log(`[Auto-Return] ⏳ Not yet time for ${permission.full_name} (duration ${durationMinutes} not in range ${minMinutes}-${maxMinutes})`);
             }
         }
     } catch (error) {
