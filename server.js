@@ -45,8 +45,6 @@ async function connectDB() {
     try {
         db = await mysql.createConnection(dbConfig);
         console.log('Database connected successfully');
-        // Sync auto-return settings after database connection is established
-        syncAutoReturnSettings();
     } catch (error) {
         console.error('Database connection error:', error);
     }
@@ -1320,66 +1318,51 @@ setInterval(async () => {
     await checkAutoReturn();
 }, autoReturnInterval);
 
-// Sync .env auto-return settings to database on server start
-async function syncAutoReturnSettings() {
+async function checkAutoReturn() {
     try {
+        // Get auto-return settings from .env directly
         const autoReturnRFIDs = process.env.AUTO_RETURN_RFID_IDS || '';
         const minMinutes = parseInt(process.env.AUTO_RETURN_MIN_MINUTES || '20');
-        // Check if AUTO_RETURN_MAX_MINUTES is explicitly set (including 0)
         const maxMinutes = process.env.AUTO_RETURN_MAX_MINUTES !== undefined 
             ? parseInt(process.env.AUTO_RETURN_MAX_MINUTES) 
             : 30;
 
         const rfidList = autoReturnRFIDs.split(',').map(id => id.trim()).filter(id => id);
 
-        console.log(`[Auto-Return] Syncing settings to database...`);
-        console.log(`[Auto-Return] RFID IDs: ${rfidList.join(', ')}`);
-        console.log(`[Auto-Return] Min: ${minMinutes} minutes, Max: ${maxMinutes} minutes`);
-
-        // Reset all teachers to auto_return_enabled = false
-        await db.query('UPDATE teachers SET auto_return_enabled = false, auto_return_min_minutes = ?, auto_return_max_minutes = ?', [minMinutes, maxMinutes]);
-
-        // Enable auto-return for specified RFID IDs
-        for (const rfidId of rfidList) {
-            await db.query(
-                'UPDATE teachers SET auto_return_enabled = true, auto_return_min_minutes = ?, auto_return_max_minutes = ? WHERE rfid_id = ?',
-                [minMinutes, maxMinutes, rfidId]
-            );
-            console.log(`[Auto-Return] Enabled for RFID ID: ${rfidId}`);
+        if (rfidList.length === 0) {
+            return; // No auto-return configured
         }
 
-        console.log(`[Auto-Return] Settings synced successfully!`);
-    } catch (error) {
-        console.error('[Auto-Return] Sync error:', error);
-    }
-}
-
-async function checkAutoReturn() {
-    try {
-        // Get active permissions for teachers with auto-return enabled
+        // Get active permissions for teachers with RFID IDs in auto-return list
         const [activePermissions] = await db.query(`
             SELECT p.*, t.*, 
                    TIMEDIFF(NOW(), p.check_out_time) as duration
             FROM permissions p
             JOIN teachers t ON p.teacher_id = t.id
             WHERE p.status = 'out'
-            AND t.auto_return_enabled = true
-        `);
+            AND t.rfid_id IN (${rfidList.map(() => '?').join(',')})
+        `, rfidList);
 
-        console.log(`[Auto-Return] Checking ${activePermissions.length} active permissions with auto-return enabled`);
+        console.log(`[Auto-Return] Checking ${activePermissions.length} active permissions for auto-return RFID IDs`);
 
         for (const permission of activePermissions) {
             const checkOutTime = new Date(permission.check_out_time);
             const now = new Date();
             const durationMinutes = Math.floor((now - checkOutTime) / 60000);
 
-            const minMinutes = permission.auto_return_min_minutes || 20;
-            const maxMinutes = permission.auto_return_max_minutes || 30;
-
             console.log(`[Auto-Return] Checking ${permission.full_name} (RFID: ${permission.rfid_id}) - Duration: ${durationMinutes} minutes, Min: ${minMinutes}, Max: ${maxMinutes}`);
 
-            // Auto-return if duration is between min and max (24 hours, no time window restriction)
-            if (durationMinutes >= minMinutes && durationMinutes <= maxMinutes) {
+            // Auto-return if duration >= min (and <= max if max > 0)
+            let shouldAutoReturn = false;
+            if (maxMinutes === 0) {
+                // No max limit, only check minimum
+                shouldAutoReturn = durationMinutes >= minMinutes;
+            } else {
+                // Check both min and max
+                shouldAutoReturn = durationMinutes >= minMinutes && durationMinutes <= maxMinutes;
+            }
+
+            if (shouldAutoReturn) {
                 console.log(`[Auto-Return] ✅ Auto-checking in: ${permission.full_name} (${durationMinutes} minutes)`);
 
                 // Update permission
@@ -1427,7 +1410,7 @@ async function checkAutoReturn() {
 
                 console.log(`[Auto-Return] Successfully auto-checked in: ${permission.full_name}`);
             } else {
-                console.log(`[Auto-Return] ⏳ Not yet time for ${permission.full_name} (duration ${durationMinutes} not in range ${minMinutes}-${maxMinutes})`);
+                console.log(`[Auto-Return] ⏳ Not yet time for ${permission.full_name} (duration ${durationMinutes} not in range ${minMinutes}-${maxMinutes === 0 ? 'unlimited' : maxMinutes})`);
             }
         }
     } catch (error) {
