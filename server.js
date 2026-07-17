@@ -302,14 +302,18 @@ async function sendTelegramDashboard(chatId) {
             WHERE status = 'out'
         `);
 
-        const message = `
-📊 *Dashboard*
+        const message = `🏛️ DASHBOARD PRESENSI GURU
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 REKAPITULASI DATA PERIZINAN
 
-👥 Total Guru: ${totalTeachers[0].total}
-📅 Izin Hari Ini: ${todayPermissions[0].total}
-📆 Izin Bulan Ini: ${monthPermissions[0].total}
-🚪 Sedang Izin: ${activePermissions[0].total}
-        `;
+👥 Total Guru Terdaftar : ${totalTeachers[0].total}
+📅 Total Izin Hari Ini  : ${todayPermissions[0].total}
+📆 Total Izin Bulan Ini : ${monthPermissions[0].total}
+
+� MONITORING AREA:
+�🚪 Guru Sedang Izin     : ${activePermissions[0].total} Orang
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 Data diperbarui secara otomatis dari IoT Node.`;
 
         const keyboard = {
             reply_markup: {
