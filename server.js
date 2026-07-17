@@ -1366,10 +1366,16 @@ async function checkAutoReturn() {
                 console.log(`[Auto-Return] ✅ Auto-checking in: ${permission.full_name} (${durationMinutes} minutes)`);
 
                 // Update permission
-                await db.query(
-                    'UPDATE permissions SET check_in_time = ?, duration_minutes = ?, status = ? WHERE id = ?',
-                    [now, durationMinutes, 'in', permission.id]
+                const result = await db.query(
+                    'UPDATE permissions SET check_in_time = ?, duration_minutes = ?, status = ? WHERE id = ? AND status = ?',
+                    [now, durationMinutes, 'in', permission.id, 'out']
                 );
+
+                // Check if update actually happened (status was 'out')
+                if (result[0].affectedRows === 0) {
+                    console.log(`[Auto-Return] Skipping ${permission.full_name} - already checked in`);
+                    continue;
+                }
 
                 // Log the auto-return
                 await db.query(
@@ -1392,17 +1398,26 @@ async function checkAutoReturn() {
                         hour12: false
                     });
 
-                    const telegramMessage = `
-🔄 *AUTO-RETURN - Guru Kembali*
+                    const checkOutTimeWITA = checkOutTime.toLocaleString('id-ID', {
+                        timeZone: 'Asia/Makassar',
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                    });
 
-👤 Nama: ${permission.full_name}
-📋 Jenis: ${permission.employee_type}
-🏷️ RFID ID: ${permission.rfid_id}
-📅 Waktu Kembali: ${checkInTimeWITA}
-⏱️ Durasi: ${durationMinutes} menit
+                    const telegramMessage = `✅ Anda telah kembali
 
-✅ Status: Otomatis kembali (Auto-return)
-                    `;
+� Nama: ${permission.full_name}
+� Tanggal Keluar: ${checkOutTimeWITA}
+📅 Tanggal Kembali: ${checkInTimeWITA}
+⏱️ Durasi Keluar: ${formatDuration(durationMinutes)}
+
+Terima kasih!`;
 
                     telegramBot.sendMessage(groupChatId, telegramMessage, { parse_mode: 'Markdown' })
                         .catch(error => console.error('Failed to send auto-return notification:', error));
