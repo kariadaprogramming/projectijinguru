@@ -219,29 +219,29 @@ async function sendTelegramMenu(chatId) {
                 ],
                 [
                     { text: '📅 Rekap Bulanan', callback_data: 'monthly_recap' },
-                    { text: '🕐 Jam', callback_data: 'time' }
+                    { text: '🕐 Waktu WIB/WITA', callback_data: 'time' }
                 ]
             ]
         }
     };
 
-    const message = `
-🏫 *Sistem Izin Keluar Masuk*
+    const message = `✦ ─────────────────────────────── ✦
+   🏫 PORTAL PERIZINAN GURU
+✦ ─────────────────────────────── ✦
 
-Selamat datang di bot sistem izin keluar masuk guru.
+Selamat datang! Pilih menu navigasi untuk mengelola data perizinan:
 
-📌 *Menu Utama:*
-📊 Dashboard - Lihat statistik hari ini
-➕ Tambah Guru - Tambah guru baru
-📋 Guru Sedang Izin - Lihat guru yang sedang izin
-📜 Riwayat Izin - Lihat riwayat izin
-🔧 Status Device - Cek status perangkat IoT
-📝 Logs - Lihat logs sistem
-📅 Rekap Bulanan - Unduh rekap bulanan
-🕐 Jam - Lihat waktu sekarang (WITA)
+◈ 📊 Dashboard      ─ Statistik & ringkasan
+◈ ➕ Tambah Guru    ─ Pendaftaran guru baru
+◈ 📋 Sedang Izin    ─ Monitoring guru di luar
+◈ 📜 Riwayat Izin   ─ Log histori izin
+◈ 🔧 Status Device  ─ Cek koneksi IoT
+◈ 📝 System Logs    ─ Logs aktivitas
+◈ 📅 Rekap Bulanan  ─ Unduh laporan
+◈ 🕐 Waktu WIB/WITA ─ Cek jam aktif
 
-Pilih menu di bawah ini:
-    `;
+───
+👇 Silakan pilih opsi melalui tombol inline:`;
 
     await telegramBot.sendMessage(chatId, message, { parse_mode: 'Markdown', ...keyboard });
 }
@@ -1157,10 +1157,6 @@ async function handleRFIDScan(data) {
             // Format waktu WITA
             const checkInTimeWITA = checkInTime.toLocaleString('id-ID', {
                 timeZone: 'Asia/Makassar',
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit',
@@ -1169,24 +1165,27 @@ async function handleRFIDScan(data) {
 
             const checkOutTimeWITA = checkOutTime.toLocaleString('id-ID', {
                 timeZone: 'Asia/Makassar',
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit',
                 hour12: false
             });
 
-            telegramMessage = `✅ Anda telah kembali
+            const durationText = durationMinutes < 1 
+                ? `${Math.round((durationMinutes * 60))} Detik` 
+                : formatDuration(durationMinutes);
 
-📋 Nama: ${teacher.full_name}
-📅 Tanggal Keluar: ${checkOutTimeWITA}
-📅 Tanggal Kembali: ${checkInTimeWITA}
-⏱️ Durasi Keluar: ${formatDuration(durationMinutes)}
+            telegramMessage = `[ LOG KEMBALI ]
 
-Terima kasih!`;
+👔 SISTEM PRESENSI STAF & PENDIDIK
+━━━━━━━━━━━━━━━━━━━━━━━━━
+� Nama Staff : ${teacher.full_name}
+� Jam Keluar : ${checkOutTimeWITA} WITA
+� Jam Masuk  : ${checkInTimeWITA} WITA
+⏱️ Durasi     : ${durationText}
+🟢 Status     : Sudah Kembali
+━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ Terima kasih, selamat melanjutkan tugas/aktivitas kembali.`;
         } else {
             // Check out
             await db.query(
@@ -1203,21 +1202,22 @@ Terima kasih!`;
                 timeZone: 'Asia/Makassar',
                 weekday: 'long',
                 year: 'numeric',
-                month: 'long',
-                day: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
                 hour: '2-digit',
                 minute: '2-digit',
-                second: '2-digit',
                 hour12: false
             });
 
-            telegramMessage = `🚪 IZIN KELUAR TERCATAT
-━━━━━━━━━━━━━━━━━━━━
-� Nama : ${teacher.full_name}
-📅 Waktu : ${checkOutTimeWITA} WITA
-📍 Status : 🔴 BELUM KEMBALI
-━━━━━━━━━━━━━━━━━━━━
-💳 Jangan lupa tap kartu saat kembali!`;
+            telegramMessage = `[ LOG IZIN KELUAR ]
+
+👔 SISTEM PRESENSI STAF & PENDIDIK
+━━━━━━━━━━━━━━━━━━━━━━━━━
+👤 Nama Staff : ${teacher.full_name}
+� Waktu Exit : ${checkOutTimeWITA} WITA
+📍 Status     : � Izin Out Area
+━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ Pengingat: Wajib melalukan tap kartu saat kembali ke lingkungan sekolah/instansi.`;
         }
 
         // Update log
@@ -1393,10 +1393,6 @@ async function checkAutoReturn() {
                 if (groupChatId) {
                     const checkInTimeWITA = now.toLocaleString('id-ID', {
                         timeZone: 'Asia/Makassar',
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
                         hour: '2-digit',
                         minute: '2-digit',
                         second: '2-digit',
@@ -1405,24 +1401,27 @@ async function checkAutoReturn() {
 
                     const checkOutTimeWITA = checkOutTime.toLocaleString('id-ID', {
                         timeZone: 'Asia/Makassar',
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
                         hour: '2-digit',
                         minute: '2-digit',
                         second: '2-digit',
                         hour12: false
                     });
 
-                    const telegramMessage = `✅ Anda telah kembali
+                    const durationText = durationMinutes < 1 
+                        ? `${Math.round((durationMinutes * 60))} Detik` 
+                        : formatDuration(durationMinutes);
 
-� Nama: ${permission.full_name}
-� Tanggal Keluar: ${checkOutTimeWITA}
-📅 Tanggal Kembali: ${checkInTimeWITA}
-⏱️ Durasi Keluar: ${formatDuration(durationMinutes)}
+                    const telegramMessage = `[ LOG KEMBALI ]
 
-Terima kasih!`;
+👔 SISTEM PRESENSI STAF & PENDIDIK
+━━━━━━━━━━━━━━━━━━━━━━━━━
+👤 Nama Staff : ${permission.full_name}
+📤 Jam Keluar : ${checkOutTimeWITA} WITA
+� Jam Masuk  : ${checkInTimeWITA} WITA
+⏱️ Durasi     : ${durationText}
+🟢 Status     : Sudah Kembali (Auto-Return)
+━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ Terima kasih, selamat melanjutkan tugas/aktivitas kembali.`;
 
                     telegramBot.sendMessage(groupChatId, telegramMessage, { parse_mode: 'Markdown' })
                         .catch(error => console.error('Failed to send auto-return notification:', error));
