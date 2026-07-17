@@ -1455,7 +1455,10 @@ async function checkAutoReturn() {
 
         const rfidList = autoReturnRFIDs.split(',').map(id => id.trim()).filter(id => id);
 
+        console.log(`[Auto-Return] Config - RFID List: [${rfidList.join(', ')}], Min: ${minMinutes}, Max: ${maxMinutes}`);
+
         if (rfidList.length === 0) {
+            console.log(`[Auto-Return] ⚠️ No RFID IDs configured in AUTO_RETURN_RFID_IDS`);
             return; // No auto-return configured
         }
 
@@ -1469,7 +1472,7 @@ async function checkAutoReturn() {
             AND t.rfid_id IN (${rfidList.map(() => '?').join(',')})
         `, rfidList);
 
-        console.log(`[Auto-Return] Checking ${activePermissions.length} active permissions for auto-return RFID IDs`);
+        console.log(`[Auto-Return] Found ${activePermissions.length} active permissions for auto-return RFID IDs`);
 
         for (const permission of activePermissions) {
             const checkOutTime = new Date(permission.check_out_time);
