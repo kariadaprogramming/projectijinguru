@@ -586,17 +586,41 @@ async function sendActivePermissions(chatId) {
         };
 
         if (permissions.length === 0) {
-            await telegramBot.sendMessage(chatId, 'Tidak ada guru yang sedang izin.', keyboard);
+            await telegramBot.sendMessage(chatId, '📋 MONITORING GURU SEDANG IZIN\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n✅ Tidak ada guru yang sedang di luar area.\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━', keyboard);
             return;
         }
 
-        let message = '📋 *Guru Sedang Izin*\n\n';
+        let message = `📋 MONITORING GURU SEDANG IZIN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚨 Terdapat ${permissions.length} orang sedang di luar area:
+
+`;
+
         permissions.forEach(p => {
             const durationMinutes = Math.floor((new Date() - new Date(p.check_out_time)) / 60000);
-            message += `👤 ${p.full_name} (${p.employee_type})\n`;
-            message += `⏰ Keluar: ${p.check_out_time.toLocaleString()}\n`;
-            message += `⏱️ Durasi: ${formatDuration(durationMinutes)}\n\n`;
+            const exitTime = p.check_out_time.toLocaleString('id-ID', {
+                timeZone: 'Asia/Makassar',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+
+            let durationText;
+            if (durationMinutes < 1) {
+                const seconds = Math.round(durationMinutes * 60);
+                durationText = `${seconds} Detik`;
+            } else {
+                durationText = `${durationMinutes} Menit`;
+            }
+
+            message += `� ${p.full_name} (${p.employee_type})\n`;
+            message += ` ├─ ⏰ Waktu Exit : ${exitTime} WITA\n`;
+            message += ` └─ ⏱️ Durasi Out : ${durationText}\n\n`;
         });
+
+        message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 Otomatis ter-update saat bersangkutan tap kartu kembali.`;
 
         await telegramBot.sendMessage(chatId, message, { parse_mode: 'Markdown', ...keyboard });
     } catch (error) {
@@ -629,17 +653,57 @@ async function sendPermissionHistory(chatId) {
             return;
         }
 
-        let message = '📜 *Riwayat Izin (20 Terakhir)*\n\n';
-        permissions.forEach(p => {
-            const status = p.status === 'out' ? '🚪 Keluar' : '✅ Kembali';
-            message += `${status} - ${p.full_name}\n`;
-            message += `📅 ${p.check_out_time.toLocaleString()}\n`;
-            if (p.check_in_time) {
-                message += `⏰ Kembali: ${p.check_in_time.toLocaleString()}\n`;
-                message += `⏱️ Durasi: ${formatDuration(p.duration_minutes)}\n`;
-            }
-            message += '\n';
+        const now = new Date();
+        const dateHeader = now.toLocaleString('id-ID', {
+            timeZone: 'Asia/Makassar',
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
         });
+
+        let message = `📜 RIWAYAT PERIZINAN GURU (20 TERAKHIR)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📅 ${dateHeader} (WITA)
+
+`;
+
+        permissions.forEach(p => {
+            const checkOutTime = p.check_out_time.toLocaleString('id-ID', {
+                timeZone: 'Asia/Makassar',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+
+            let durationText;
+            if (p.check_in_time) {
+                const checkInTime = p.check_in_time.toLocaleString('id-ID', {
+                    timeZone: 'Asia/Makassar',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+
+                if (p.duration_minutes < 1) {
+                    const seconds = Math.round(p.duration_minutes * 60);
+                    durationText = `${seconds} dtk`;
+                } else {
+                    durationText = `${Math.round(p.duration_minutes)} mnt`;
+                }
+
+                message += `👤 ${p.full_name}\n`;
+                message += ` └ ⏱️ ${checkOutTime} ➔ ${checkInTime} (${durationText})\n\n`;
+            } else {
+                message += `👤 ${p.full_name}\n`;
+                message += ` └ ⏱️ ${checkOutTime} ➔ Belum Kembali\n\n`;
+            }
+        });
+
+        message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 Total: ${permissions.length} Transaksi Terakhir (Selesai/Kembali)`;
 
         await telegramBot.sendMessage(chatId, message, { parse_mode: 'Markdown', ...keyboard });
     } catch (error) {
@@ -666,16 +730,39 @@ async function sendDeviceStatus(chatId) {
             return;
         }
 
-        let message = '🔧 *Status Device*\n\n';
+        let message = '';
         devices.forEach(d => {
-            const status = d.status === 'online' ? '🟢 Online' : d.status === 'offline' ? '🔴 Offline' : '🟡 Error';
-            message += `${status} - ${d.device_name}\n`;
-            message += `ID: ${d.device_id}\n`;
-            message += `IP: ${d.ip_address || 'N/A'}\n`;
-            message += `Terakhir dilihat: ${d.last_seen ? d.last_seen.toLocaleString() : 'N/A'}\n\n`;
+            const networkStatus = d.status === 'online' ? '🟢 ONLINE' : d.status === 'offline' ? '🔴 OFFLINE' : '🟡 ERROR';
+            const lastSeen = d.last_seen ? d.last_seen.toLocaleString('id-ID', {
+                timeZone: 'Asia/Makassar',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            }).replace(',', '') : 'N/A';
+            
+            const statusMessage = d.status === 'online' 
+                ? '✅ Perangkat terhubung dan siap memproses RFID.' 
+                : d.status === 'offline' 
+                    ? '❌ Perangkat tidak terhubung. Silakan periksa koneksi.' 
+                    : '⚠️ Perangkat mengalami error.';
+
+            message += `🔧 MONITORING PERANGKAT IoT
+━━━━━━━━━━━━━━━━━━━━━━━━━
+📡 Device Name : ${d.device_name}
+🟢 Network     : ${networkStatus}
+🌐 IP Address  : ${d.ip_address || 'N/A'}
+🕒 Last Heartbeat : ${lastSeen} WITA
+━━━━━━━━━━━━━━━━━━━━━━━━━
+${statusMessage}
+
+`;
         });
 
-        await telegramBot.sendMessage(chatId, message, { parse_mode: 'Markdown', ...keyboard });
+        await telegramBot.sendMessage(chatId, message.trim(), { parse_mode: 'Markdown', ...keyboard });
     } catch (error) {
         console.error('Device status error:', error);
     }
@@ -704,13 +791,48 @@ async function sendLogs(chatId) {
             return;
         }
 
-        let message = '📝 *Logs RFID (20 Terakhir)*\n\n';
-        logs.forEach(l => {
-            const action = l.action === 'check_out' ? '🚪 Keluar' : l.action === 'check_in' ? '✅ Masuk' : '❓ Unknown';
-            message += `${action} - RFID: ${l.rfid_id}\n`;
-            message += `📅 ${l.created_at.toLocaleString()}\n`;
-            message += `Status: ${l.status}\n\n`;
+        const now = new Date();
+        const dateHeader = now.toLocaleString('id-ID', {
+            timeZone: 'Asia/Makassar',
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
         });
+
+        let message = `📝 RIWAYAT LOG RFID (20 TERAKHIR)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📅 ${dateHeader} (WITA)
+
+`;
+
+        logs.forEach(l => {
+            const time = l.created_at.toLocaleString('id-ID', {
+                timeZone: 'Asia/Makassar',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+
+            let icon, actionText;
+            if (l.action === 'check_out') {
+                icon = '�';
+                actionText = 'Keluar';
+            } else if (l.action === 'check_in') {
+                icon = '🟢';
+                actionText = 'Masuk ';
+            } else {
+                icon = '⚠️';
+                actionText = 'Unknown';
+            }
+
+            const errorSuffix = (l.action !== 'check_in' && l.action !== 'check_out') ? ' (Error)' : '';
+            message += `${icon} [${time}] ${actionText} • \`${l.rfid_id}\`${errorSuffix}\n`;
+        });
+
+        message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 Filter: Success & Error System Logs`;
 
         await telegramBot.sendMessage(chatId, message, { parse_mode: 'Markdown', ...keyboard });
     } catch (error) {
