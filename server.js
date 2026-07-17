@@ -210,12 +210,12 @@ async function sendTelegramMenu(chatId) {
                     { text: '➕ Tambah Guru', callback_data: 'add_teacher' }
                 ],
                 [
-                    { text: '📋 Guru Sedang Izin', callback_data: 'active_permissions' },
+                    { text: '📋 Sedang Izin', callback_data: 'active_permissions' },
                     { text: '📜 Riwayat Izin', callback_data: 'history' }
                 ],
                 [
                     { text: '🔧 Status Device', callback_data: 'device_status' },
-                    { text: '📝 Logs', callback_data: 'logs' }
+                    { text: '📝 System Logs', callback_data: 'logs' }
                 ],
                 [
                     { text: '📅 Rekap Bulanan', callback_data: 'monthly_recap' },
