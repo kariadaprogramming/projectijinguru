@@ -1365,17 +1365,22 @@ async function checkAutoReturn() {
             if (shouldAutoReturn) {
                 console.log(`[Auto-Return] ✅ Auto-checking in: ${permission.full_name} (${durationMinutes} minutes)`);
 
-                // Update permission
-                const result = await db.query(
-                    'UPDATE permissions SET check_in_time = ?, duration_minutes = ?, status = ? WHERE id = ? AND status = ?',
-                    [now, durationMinutes, 'in', permission.id, 'out']
+                // Check current status before updating
+                const [currentStatus] = await db.query(
+                    'SELECT status FROM permissions WHERE id = ?',
+                    [permission.id]
                 );
 
-                // Check if update actually happened (status was 'out')
-                if (result[0].affectedRows === 0) {
+                if (currentStatus[0].status === 'in') {
                     console.log(`[Auto-Return] Skipping ${permission.full_name} - already checked in`);
                     continue;
                 }
+
+                // Update permission
+                await db.query(
+                    'UPDATE permissions SET check_in_time = ?, duration_minutes = ?, status = ? WHERE id = ?',
+                    [now, durationMinutes, 'in', permission.id]
+                );
 
                 // Log the auto-return
                 await db.query(
