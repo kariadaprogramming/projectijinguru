@@ -1211,13 +1211,13 @@ Terima kasih!`;
                 hour12: false
             });
 
-            telegramMessage = `🚪 Anda izin keluar
-
-📋 Nama: ${teacher.full_name}
-📅 Waktu Keluar: ${checkOutTimeWITA}
-📍 Status: Belum Kembali
-
-Jangan lupa tap kartu saat kembali!`;
+            telegramMessage = `🚪 IZIN KELUAR TERCATAT
+━━━━━━━━━━━━━━━━━━━━
+� Nama : ${teacher.full_name}
+📅 Waktu : ${checkOutTimeWITA} WITA
+📍 Status : 🔴 BELUM KEMBALI
+━━━━━━━━━━━━━━━━━━━━
+💳 Jangan lupa tap kartu saat kembali!`;
         }
 
         // Update log
