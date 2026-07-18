@@ -102,6 +102,23 @@ body {
     padding: 0.75rem 1.5rem;
 }
 
+.navbar-toggler {
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-secondary);
+}
+
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
+    outline: none;
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(26, 26, 26, 0.75)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+    width: 24px;
+    height: 24px;
+}
+
 .navbar-brand {
     font-weight: 600;
     font-size: 1.25rem;
