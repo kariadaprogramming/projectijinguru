@@ -475,7 +475,7 @@ async function saveTeacherToDatabase(chatId) {
             return;
         }
 
-        await run(
+        await db.query(
             'INSERT INTO teachers (rfid_id, full_name, employee_type, phone_number, telegram_chat_id) VALUES (?, ?, ?, ?, ?)',
             [rfidId, name, type, phone, null]  // Set to NULL since notifications go to group
         );
@@ -559,7 +559,7 @@ async function processAddTeacher(chatId, text) {
             return;
         }
 
-        await run(
+        await db.query(
             'INSERT INTO teachers (rfid_id, full_name, employee_type, phone_number, telegram_chat_id) VALUES (?, ?, ?, ?, ?)',
             [rfidId.trim(), name.trim(), type.trim().toLowerCase(), phone?.trim() || null, null]  // Set to NULL since notifications go to group
         );
