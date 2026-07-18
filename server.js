@@ -206,42 +206,42 @@ async function sendTelegramMenu(chatId) {
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: 'ðŸ“Š Dashboard', callback_data: 'dashboard' },
-                    { text: 'âž• Tambah Guru', callback_data: 'add_teacher' }
+                    { text: '📊 Dashboard', callback_data: 'dashboard' },
+                    { text: '➕ Tambah Guru', callback_data: 'add_teacher' }
                 ],
                 [
-                    { text: 'ðŸ“‹ Sedang Izin', callback_data: 'active_permissions' },
-                    { text: 'ðŸ“œ Riwayat Izin', callback_data: 'history' }
+                    { text: '📋 Sedang Izin', callback_data: 'active_permissions' },
+                    { text: '📜 Riwayat Izin', callback_data: 'history' }
                 ],
                 [
-                    { text: 'ðŸ”§ Status Device', callback_data: 'device_status' },
-                    { text: 'ðŸ“ System Logs', callback_data: 'logs' }
+                    { text: '🔧 Status Device', callback_data: 'device_status' },
+                    { text: '📝 System Logs', callback_data: 'logs' }
                 ],
                 [
-                    { text: 'ðŸ“… Rekap Bulanan', callback_data: 'monthly_recap' },
-                    { text: 'ðŸ• Waktu WIB/WITA', callback_data: 'time' }
+                    { text: '📊 Rekap Bulanan', callback_data: 'monthly_recap' },
+                    { text: '🕐 Waktu WIB/WITA', callback_data: 'time' }
                 ]
             ]
         }
     };
 
-    const message = `âœ¦ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ âœ¦
-   ðŸ« PORTAL PERIZINAN GURU
-âœ¦ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ âœ¦
+    const message = `✦ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ✦
+   🏫 PORTAL PERIZINAN GURU
+✦ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ✦
 
 Selamat datang! Pilih menu navigasi untuk mengelola data perizinan:
 
-â—ˆ ðŸ“Š Dashboard      â”€ Statistik & ringkasan
-â—ˆ âž• Tambah Guru    â”€ Pendaftaran guru baru
-â—ˆ ðŸ“‹ Sedang Izin    â”€ Monitoring guru di luar
-â—ˆ ðŸ“œ Riwayat Izin   â”€ Log histori izin
-â—ˆ ðŸ”§ Status Device  â”€ Cek koneksi IoT
-â—ˆ ðŸ“ System Logs    â”€ Logs aktivitas
-â—ˆ ðŸ“… Rekap Bulanan  â”€ Unduh laporan
-â—ˆ ðŸ• Waktu WIB/WITA â”€ Cek jam aktif
+◆ 📊 Dashboard      ─ Statistik & ringkasan
+◆ ➕ Tambah Guru    ─ Pendaftaran guru baru
+◆ 📋 Sedang Izin    ─ Monitoring guru di luar
+◆ 📜 Riwayat Izin   ─ Log histori izin
+◆ 🔧 Status Device  ─ Cek koneksi IoT
+◆ 📝 System Logs    ─ Logs aktivitas
+◆ 📊 Rekap Bulanan  ─ Unduh laporan
+◆ 🕐 Waktu WIB/WITA ─ Cek jam aktif
 
-â”€â”€â”€
-ðŸ‘‡ Silakan pilih opsi melalui tombol inline:`;
+━━━━
+👇 Silakan pilih opsi melalui tombol inline:`;
 
     await telegramBot.sendMessage(chatId, message, { parse_mode: 'Markdown', ...keyboard });
 }
@@ -265,15 +265,15 @@ async function sendCurrentTime(chatId) {
     const keyboard = {
         reply_markup: {
             inline_keyboard: [
-                [{ text: 'ðŸ”„ Refresh', callback_data: 'time' }],
-                [{ text: 'ðŸ“Š Dashboard', callback_data: 'dashboard' }],
-                [{ text: 'ðŸ”™ Kembali ke Menu', callback_data: 'back_to_menu' }]
+                [{ text: '🔄 Refresh', callback_data: 'time' }],
+                [{ text: '📊 Dashboard', callback_data: 'dashboard' }],
+                [{ text: '🔙 Kembali ke Menu', callback_data: 'back_to_menu' }]
             ]
         }
     };
 
     await telegramBot.sendMessage(chatId, `
-ðŸ• *Waktu Sekarang (WITA)*
+🕐 *Waktu Sekarang (WITA)*
 
 ${timeString}
 
@@ -338,17 +338,17 @@ async function startAddTeacherFlow(chatId) {
     const keyboard = {
         reply_markup: {
             inline_keyboard: [
-                [{ text: 'âŒ Batal', callback_data: 'back_to_menu' }]
+                [{ text: '❌ Batal', callback_data: 'back_to_menu' }]
             ]
         }
     };
 
     await telegramBot.sendMessage(chatId, `
-âž• *Tambah Guru Baru*
+➕ *Tambah Guru Baru*
 
 Mari tambahkan guru baru dengan langkah-langkah mudah.
 
-ðŸ“ *Langkah 1 dari 4: Nama Guru*
+📝 *Langkah 1 dari 4: Nama Guru*
 
 Silakan ketik nama lengkap guru:
     `, { parse_mode: 'Markdown', ...keyboard });
@@ -361,21 +361,21 @@ async function processAddTeacherName(chatId, text) {
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: 'ðŸ‘¨â€ðŸ« Guru', callback_data: 'type_guru' },
-                    { text: 'ðŸ‘¨â€ðŸ’¼ Pegawai', callback_data: 'type_pegawai' }
+                    { text: '👨‍🏫 Guru', callback_data: 'type_guru' },
+                    { text: '👨‍💼 Pegawai', callback_data: 'type_pegawai' }
                 ],
                 [
-                    { text: 'ðŸ‘¨â€ðŸ’» Staff', callback_data: 'type_staff' },
-                    { text: 'âŒ Batal', callback_data: 'back_to_menu' }
+                    { text: '👨‍💻 Staff', callback_data: 'type_staff' },
+                    { text: '❌ Batal', callback_data: 'back_to_menu' }
                 ]
             ]
         }
     };
 
     await telegramBot.sendMessage(chatId, `
-âœ… Nama: ${text}
+✅ Nama: ${text}
 
-ðŸ“ *Langkah 2 dari 4: Jenis Guru*
+📝 *Langkah 2 dari 4: Jenis Guru*
 
 Pilih jenis guru:
     `, { parse_mode: 'Markdown', ...keyboard });
@@ -387,7 +387,7 @@ async function processAddTeacherType(chatId, text) {
     else if (text === 'Pegawai' || text === 'type_pegawai') type = 'pegawai';
     else if (text === 'Staff' || text === 'type_staff') type = 'staff';
     else {
-        await telegramBot.sendMessage(chatId, 'âŒ Pilihan tidak valid. Silakan pilih dari tombol di atas.');
+        await telegramBot.sendMessage(chatId, '❌ Pilihan tidak valid. Silakan pilih dari tombol di atas.');
         return;
     }
 
@@ -396,16 +396,16 @@ async function processAddTeacherType(chatId, text) {
     const keyboard = {
         reply_markup: {
             inline_keyboard: [
-                [{ text: 'âŒ Batal', callback_data: 'back_to_menu' }]
+                [{ text: '❌ Batal', callback_data: 'back_to_menu' }]
             ]
         }
     };
 
     await telegramBot.sendMessage(chatId, `
-âœ… Nama: ${userStates[chatId].name}
-âœ… Jenis: ${type}
+✅ Nama: ${userStates[chatId].name}
+✅ Jenis: ${type}
 
-ðŸ“ *Langkah 3 dari 4: RFID ID*
+📝 *Langkah 3 dari 4: RFID ID*
 
 Silakan ketik RFID ID guru (scan kartu RFID):
     `, { parse_mode: 'Markdown', ...keyboard });
@@ -421,7 +421,7 @@ async function processAddTeacherRFID(chatId, text) {
     );
 
     if (existingRFID.length > 0) {
-        await telegramBot.sendMessage(chatId, `âŒ Gagal: RFID ID ${rfidId} sudah terdaftar! Silakan coba lagi.`);
+        await telegramBot.sendMessage(chatId, `❌ Gagal: RFID ID ${rfidId} sudah terdaftar! Silakan coba lagi.`);
         return;
     }
 
@@ -430,18 +430,18 @@ async function processAddTeacherRFID(chatId, text) {
     const keyboard = {
         reply_markup: {
             inline_keyboard: [
-                [{ text: 'â­ï¸ Lewati', callback_data: 'skip_phone' }],
-                [{ text: 'âŒ Batal', callback_data: 'back_to_menu' }]
+                [{ text: '⏭️ Lewati', callback_data: 'skip_phone' }],
+                [{ text: '❌ Batal', callback_data: 'back_to_menu' }]
             ]
         }
     };
 
     await telegramBot.sendMessage(chatId, `
-âœ… Nama: ${userStates[chatId].name}
-âœ… Jenis: ${userStates[chatId].type}
-âœ… RFID ID: ${rfidId}
+✅ Nama: ${userStates[chatId].name}
+✅ Jenis: ${userStates[chatId].type}
+✅ RFID ID: ${rfidId}
 
-ðŸ“ *Langkah 4 dari 4: Nomor HP* (Opsional)
+📝 *Langkah 4 dari 4: Nomor HP* (Opsional)
 
 Silakan ketik nomor HP guru (atau lewati):
     `, { parse_mode: 'Markdown', ...keyboard });
@@ -464,7 +464,7 @@ async function saveTeacherToDatabase(chatId) {
         );
 
         if (existingName.length > 0) {
-            await telegramBot.sendMessage(chatId, `âŒ Gagal: Nama guru ${name} sudah terdaftar!`);
+            await telegramBot.sendMessage(chatId, `❌ Gagal: Nama guru ${name} sudah terdaftar!`);
             delete userStates[chatId];
             return;
         }
@@ -479,27 +479,27 @@ async function saveTeacherToDatabase(chatId) {
         const keyboard = {
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: 'âž• Tambah Lagi', callback_data: 'add_teacher' }],
-                    [{ text: 'ðŸ“Š Dashboard', callback_data: 'dashboard' }],
-                    [{ text: 'ðŸ”™ Kembali ke Menu', callback_data: 'back_to_menu' }]
+                    [{ text: '➕ Tambah Lagi', callback_data: 'add_teacher' }],
+                    [{ text: '📊 Dashboard', callback_data: 'dashboard' }],
+                    [{ text: '🔙 Kembali ke Menu', callback_data: 'back_to_menu' }]
                 ]
             }
         };
 
         await telegramBot.sendMessage(chatId, `
-âœ… *Guru Berhasil Ditambahkan!*
+✅ *Guru Berhasil Ditambahkan!*
 
-ðŸ‘¤ Nama: ${name}
-ðŸ“‹ Jenis: ${type}
-ðŸ·ï¸ RFID ID: ${rfidId}
-ðŸ“± No HP: ${phone || '-'}
+👤 Nama: ${name}
+📋 Jenis: ${type}
+🏷️ RFID ID: ${rfidId}
+📱 No HP: ${phone || '-'}
 
 Guru sekarang dapat menggunakan sistem izin keluar masuk.
 Notifikasi akan dikirim ke grup Telegram.
         `, { parse_mode: 'Markdown', ...keyboard });
     } catch (error) {
         console.error('Add teacher error:', error);
-        await telegramBot.sendMessage(chatId, 'âŒ Gagal menambahkan guru. Terjadi kesalahan sistem.');
+        await telegramBot.sendMessage(chatId, '❌ Gagal menambahkan guru. Terjadi kesalahan sistem.');
         delete userStates[chatId];
     }
 }
@@ -538,7 +538,7 @@ async function processAddTeacher(chatId, text) {
         );
 
         if (existingRFID.length > 0) {
-            await telegramBot.sendMessage(chatId, `âŒ Gagal: RFID ID ${rfidId.trim()} sudah terdaftar!`);
+            await telegramBot.sendMessage(chatId, `❌ Gagal: RFID ID ${rfidId.trim()} sudah terdaftar!`);
             return;
         }
 
@@ -549,7 +549,7 @@ async function processAddTeacher(chatId, text) {
         );
 
         if (existingName.length > 0) {
-            await telegramBot.sendMessage(chatId, `âŒ Gagal: Nama guru ${name.trim()} sudah terdaftar!`);
+            await telegramBot.sendMessage(chatId, `❌ Gagal: Nama guru ${name.trim()} sudah terdaftar!`);
             return;
         }
 
@@ -558,10 +558,10 @@ async function processAddTeacher(chatId, text) {
             [rfidId.trim(), name.trim(), type.trim().toLowerCase(), phone?.trim() || null, null]  // Set to NULL since notifications go to group
         );
 
-        await telegramBot.sendMessage(chatId, `âœ… Guru ${name} berhasil ditambahkan!`);
+        await telegramBot.sendMessage(chatId, `✅ Guru ${name} berhasil ditambahkan!`);
     } catch (error) {
         console.error('Add teacher error:', error);
-        await telegramBot.sendMessage(chatId, 'âŒ Gagal menambahkan guru. Terjadi kesalahan sistem.');
+        await telegramBot.sendMessage(chatId, '❌ Gagal menambahkan guru. Terjadi kesalahan sistem.');
     }
 }
 
@@ -578,21 +578,21 @@ async function sendActivePermissions(chatId) {
         const keyboard = {
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: 'ðŸ”„ Refresh', callback_data: 'active_permissions' }],
-                    [{ text: 'ðŸ“Š Dashboard', callback_data: 'dashboard' }],
-                    [{ text: 'ðŸ”™ Kembali ke Menu', callback_data: 'back_to_menu' }]
+                    [{ text: '🔄 Refresh', callback_data: 'active_permissions' }],
+                    [{ text: '📊 Dashboard', callback_data: 'dashboard' }],
+                    [{ text: '🔙 Kembali ke Menu', callback_data: 'back_to_menu' }]
                 ]
             }
         };
 
         if (permissions.length === 0) {
-            await telegramBot.sendMessage(chatId, 'ðŸ“‹ MONITORING GURU SEDANG IZIN\nâ”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\nâœ… Tidak ada guru yang sedang di luar area.\nâ”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”', keyboard);
+            await telegramBot.sendMessage(chatId, '📋 MONITORING GURU SEDANG IZIN\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\n✅ Tidak ada guru yang sedang di luar area.\n━━━━━━━━━━━━━━━━━━━━━━━━━━━', keyboard);
             return;
         }
 
-        let message = `ðŸ“‹ MONITORING GURU SEDANG IZIN
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
-ðŸš¨ Terdapat ${permissions.length} orang sedang di luar area:
+        let message = `📋 MONITORING GURU SEDANG IZIN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚨 Terdapat ${permissions.length} orang sedang di luar area:
 
 `;
 
@@ -614,13 +614,13 @@ async function sendActivePermissions(chatId) {
                 durationText = `${durationMinutes} Menit`;
             }
 
-            message += `ï¿½ ${p.full_name} (${p.employee_type})\n`;
-            message += ` â”œâ”€ â° Waktu Exit : ${exitTime} WITA\n`;
-            message += ` â””â”€ â±ï¸ Durasi Out : ${durationText}\n\n`;
+            message += `🔴 ${p.full_name} (${p.employee_type})\n`;
+            message += ` ├─ ⏰ Waktu Exit : ${exitTime} WITA\n`;
+            message += ` └─ ⏱️ Durasi Out : ${durationText}\n\n`;
         });
 
-        message += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
-ðŸ“Œ Otomatis ter-update saat bersangkutan tap kartu kembali.`;
+        message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 Otomatis ter-update saat bersangkutan tap kartu kembali.`;
 
         await telegramBot.sendMessage(chatId, message, { parse_mode: 'Markdown', ...keyboard });
     } catch (error) {
@@ -843,7 +843,7 @@ async function sendLogs(chatId) {
 // Monthly Recap Handler
 async function handleMonthlyRecap(chatId) {
     await telegramBot.sendMessage(chatId, `
-ðŸ“… Rekap Bulanan
+📊 Rekap Bulanan
 
 Silakan kirim format:
 REKAP:BULAN:TAHUN
@@ -871,7 +871,7 @@ async function startMonthlyRecapFlow(chatId) {
     for (let i = 0; i < months.length; i++) {
         monthButtons.push([{ text: months[i], callback_data: `select_month_${i + 1}` }]);
     }
-    monthButtons.push([{ text: 'âŒ Batal', callback_data: 'back_to_menu' }]);
+    monthButtons.push([{ text: '❌ Batal', callback_data: 'back_to_menu' }]);
 
     const keyboard = {
         reply_markup: {
@@ -880,7 +880,7 @@ async function startMonthlyRecapFlow(chatId) {
     };
 
     await telegramBot.sendMessage(chatId, `
-ðŸ“… *Rekap Bulanan*
+📊 *Rekap Bulanan*
 
 Pilih bulan untuk rekap:
     `, { parse_mode: 'Markdown', ...keyboard });
@@ -891,7 +891,7 @@ async function selectYearForRecap(chatId) {
     const years = [currentYear - 1, currentYear, currentYear + 1];
 
     const yearButtons = years.map(year => [{ text: year.toString(), callback_data: `select_year_${year}` }]);
-    yearButtons.push([{ text: 'âŒ Batal', callback_data: 'back_to_menu' }]);
+    yearButtons.push([{ text: '❌ Batal', callback_data: 'back_to_menu' }]);
 
     const keyboard = {
         reply_markup: {
@@ -900,7 +900,7 @@ async function selectYearForRecap(chatId) {
     };
 
     await telegramBot.sendMessage(chatId, `
-ðŸ“… *Pilih Tahun*
+📊 *Pilih Tahun*
 
 Pilih tahun untuk rekap:
     `, { parse_mode: 'Markdown', ...keyboard });
@@ -911,21 +911,21 @@ async function selectFormatForRecap(chatId) {
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: 'ðŸ“Š Excel (.xlsx)', callback_data: 'format_excel' },
-                    { text: 'ðŸ“„ Word (.docx)', callback_data: 'format_word' }
+                    { text: '📊 Excel (.xlsx)', callback_data: 'format_excel' },
+                    { text: '📄 Word (.docx)', callback_data: 'format_word' }
                 ],
                 [
-                    { text: 'ðŸ“‘ PDF (.pdf)', callback_data: 'format_pdf' }
+                    { text: '📑 PDF (.pdf)', callback_data: 'format_pdf' }
                 ],
                 [
-                    { text: 'âŒ Batal', callback_data: 'back_to_menu' }
+                    { text: '❌ Batal', callback_data: 'back_to_menu' }
                 ]
             ]
         }
     };
 
     await telegramBot.sendMessage(chatId, `
-ðŸ“ *Pilih Format File*
+📁 *Pilih Format File*
 
 Pilih format file untuk rekap bulanan:
     `, { parse_mode: 'Markdown', ...keyboard });
@@ -936,7 +936,7 @@ async function selectYearForRecap(chatId) {
     const years = [currentYear - 1, currentYear, currentYear + 1];
 
     const yearButtons = years.map(year => [{ text: year.toString(), callback_data: `select_year_${year}` }]);
-    yearButtons.push([{ text: 'âŒ Batal', callback_data: 'back_to_menu' }]);
+    yearButtons.push([{ text: '❌ Batal', callback_data: 'back_to_menu' }]);
 
     const keyboard = {
         reply_markup: {
@@ -945,7 +945,7 @@ async function selectYearForRecap(chatId) {
     };
 
     await telegramBot.sendMessage(chatId, `
-ðŸ“… *Pilih Tahun*
+📊 *Pilih Tahun*
 
 Pilih tahun untuk rekap:
     `, { parse_mode: 'Markdown', ...keyboard });
@@ -967,13 +967,13 @@ async function processMonthlyRecapWithSelection(chatId) {
             const keyboard = {
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: 'ðŸ”„ Coba Bulan Lain', callback_data: 'monthly_recap' }],
-                        [{ text: 'ðŸ”™ Kembali ke Menu', callback_data: 'back_to_menu' }]
+                        [{ text: '🔄 Coba Bulan Lain', callback_data: 'monthly_recap' }],
+                        [{ text: '🔙 Kembali ke Menu', callback_data: 'back_to_menu' }]
                     ]
                 }
             };
 
-            await telegramBot.sendMessage(chatId, `âŒ Tidak ada data untuk bulan ${month}/${year}`, keyboard);
+            await telegramBot.sendMessage(chatId, `❌ Tidak ada data untuk bulan ${month}/${year}`, keyboard);
             delete userStates[chatId];
             return;
         }
@@ -1107,9 +1107,9 @@ async function processMonthlyRecapWithSelection(chatId) {
         const keyboard = {
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: 'ðŸ”„ Rekap Bulan Lain', callback_data: 'monthly_recap' }],
-                    [{ text: 'ðŸ“Š Dashboard', callback_data: 'dashboard' }],
-                    [{ text: 'ðŸ”™ Kembali ke Menu', callback_data: 'back_to_menu' }]
+                    [{ text: '🔄 Rekap Bulan Lain', callback_data: 'monthly_recap' }],
+                    [{ text: '📊 Dashboard', callback_data: 'dashboard' }],
+                    [{ text: '🔙 Kembali ke Menu', callback_data: 'back_to_menu' }]
                 ]
             }
         };
@@ -1119,10 +1119,10 @@ async function processMonthlyRecapWithSelection(chatId) {
         });
 
         await telegramBot.sendMessage(chatId, `
-âœ… *Rekap Bulanan ${month}/${year} Berhasil!*
+✅ *Rekap Bulanan ${month}/${year} Berhasil!*
 
-ðŸ“Š Total Data: ${permissions.length} izin
-ðŸ“ Format: ${formatName}
+📊 Total Data: ${permissions.length} izin
+📁 Format: ${formatName}
 
 File telah dikirim. Anda dapat membukanya di perangkat Anda.
         `, { parse_mode: 'Markdown', ...keyboard });
@@ -1141,7 +1141,7 @@ File telah dikirim. Anda dapat membukanya di perangkat Anda.
         delete userStates[chatId];
     } catch (error) {
         console.error('Monthly recap error:', error);
-        await telegramBot.sendMessage(chatId, 'âŒ Gagal membuat rekap bulanan. Terjadi kesalahan sistem.');
+        await telegramBot.sendMessage(chatId, '❌ Gagal membuat rekap bulanan. Terjadi kesalahan sistem.');
         delete userStates[chatId];
     }
 }
@@ -1303,15 +1303,15 @@ async function handleRFIDScan(data) {
 
             telegramMessage = `[ LOG KEMBALI ]
 
-ðŸ‘” SISTEM PRESENSI STAF & PENDIDIK
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
-ï¿½ Nama Staff : ${teacher.full_name}
-ï¿½ Jam Keluar : ${checkOutTimeWITA} WITA
-ï¿½ Jam Masuk  : ${checkInTimeWITA} WITA
-â±ï¸ Durasi     : ${durationText}
-ðŸŸ¢ Status     : Sudah Kembali
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
-âœ¨ Terima kasih, selamat melanjutkan tugas/aktivitas kembali.`;
+👔 SISTEM PRESENSI STAF & PENDIDIK
+━━━━━━━━━━━━━━━━━━━━━━━━━
+👤 Nama Staff : ${teacher.full_name}
+📤 Jam Keluar : ${checkOutTimeWITA} WITA
+📥 Jam Masuk  : ${checkInTimeWITA} WITA
+⏱️ Durasi     : ${durationText}
+🟢 Status     : Sudah Kembali
+━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ Terima kasih, selamat melanjutkan tugas/aktivitas kembali.`;
         } else {
             // Check out
             await db.query(
@@ -1337,13 +1337,13 @@ async function handleRFIDScan(data) {
 
             telegramMessage = `[ LOG IZIN KELUAR ]
 
-ðŸ‘” SISTEM PRESENSI STAF & PENDIDIK
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
-ðŸ‘¤ Nama Staff : ${teacher.full_name}
-ï¿½ Waktu Exit : ${checkOutTimeWITA} WITA
-ðŸ“ Status     : ï¿½ Izin Out Area
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
-âš ï¸ Pengingat: Wajib melalukan tap kartu saat kembali ke lingkungan sekolah/instansi.`;
+👔 SISTEM PRESENSI STAF & PENDIDIK
+━━━━━━━━━━━━━━━━━━━━━━━━━
+👤 Nama Staff : ${teacher.full_name}
+🕒 Waktu Exit : ${checkOutTimeWITA} WITA
+📍 Status     : 🛑 Izin Out Area
+━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ Pengingat: Wajib melalukan tap kartu saat kembali ke lingkungan sekolah/instansi.`;
         }
 
         // Update log
@@ -1576,15 +1576,15 @@ async function checkAutoReturn() {
 
                     const telegramMessage = `[ LOG KEMBALI ]
 
-ðŸ‘” SISTEM PRESENSI STAF & PENDIDIK
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
-ðŸ‘¤ Nama Staff : ${permission.full_name}
-ðŸ“¤ Jam Keluar : ${checkOutTimeWITA} WITA
-ï¿½ Jam Masuk  : ${checkInTimeWITA} WITA
-â±ï¸ Durasi     : ${durationText}
-ðŸŸ¢ Status     : Sudah Kembali (Auto-Return)
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
-âœ¨ Terima kasih, selamat melanjutkan tugas/aktivitas kembali.`;
+👔 SISTEM PRESENSI STAF & PENDIDIK
+━━━━━━━━━━━━━━━━━━━━━━━━━
+👤 Nama Staff : ${permission.full_name}
+📤 Jam Keluar : ${checkOutTimeWITA} WITA
+📥 Jam Masuk  : ${checkInTimeWITA} WITA
+⏱️ Durasi     : ${durationText}
+🟢 Status     : Sudah Kembali (Auto-Return)
+━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ Terima kasih, selamat melanjutkan tugas/aktivitas kembali.`;
 
                     telegramBot.sendMessage(groupChatId, telegramMessage, { parse_mode: 'Markdown' })
                         .catch(error => console.error('Failed to send auto-return notification:', error));
@@ -1755,12 +1755,24 @@ app.post('/api/teachers', async (req, res) => {
 
 app.put('/api/teachers/:id', async (req, res) => {
     try {
-        const { full_name, employee_type, phone_number, telegram_chat_id, is_active } = req.body;
+        const { rfid_id, full_name, employee_type, phone_number, telegram_chat_id, is_active } = req.body;
         const { id } = req.params;
 
+        // Check for duplicate RFID ID (if rfid_id is being changed)
+        if (rfid_id) {
+            const [existingRFID] = await db.query(
+                'SELECT id FROM teachers WHERE rfid_id = ? AND id != ?',
+                [rfid_id, id]
+            );
+
+            if (existingRFID.length > 0) {
+                return res.status(400).json({ error: 'RFID ID sudah terdaftar pada guru lain' });
+            }
+        }
+
         await db.query(
-            'UPDATE teachers SET full_name = ?, employee_type = ?, phone_number = ?, telegram_chat_id = ?, is_active = ? WHERE id = ?',
-            [full_name, employee_type, phone_number, telegram_chat_id, is_active, id]
+            'UPDATE teachers SET rfid_id = ?, full_name = ?, employee_type = ?, phone_number = ?, telegram_chat_id = ?, is_active = ? WHERE id = ?',
+            [rfid_id, full_name, employee_type, phone_number, telegram_chat_id, is_active, id]
         );
 
         res.json({ message: 'Teacher updated successfully' });
@@ -1773,7 +1785,10 @@ app.put('/api/teachers/:id', async (req, res) => {
 app.delete('/api/teachers/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        await db.query('UPDATE teachers SET is_active = false WHERE id = ?', [id]);
+        
+        // Hard delete - will cascade to permissions due to ON DELETE CASCADE
+        await db.query('DELETE FROM teachers WHERE id = ?', [id]);
+        
         res.json({ message: 'Teacher deleted successfully' });
     } catch (error) {
         console.error('Delete teacher error:', error);
