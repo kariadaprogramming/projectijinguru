@@ -1474,6 +1474,7 @@ async function checkAutoReturn() {
 				p.notes,
 				p.created_at,
 				p.updated_at,
+                p.auto_return_time,
 				t.id as teacher_id,
 				t.rfid_id,
 				t.full_name,
