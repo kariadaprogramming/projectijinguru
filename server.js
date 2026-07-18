@@ -134,6 +134,8 @@ telegramBot.on('callback_query', async (query) => {
             await sendTelegramDashboard(chatId);
         } else if (data === 'add_teacher') {
             await startAddTeacherFlow(chatId);
+        } else if (data === 'teacher_list') {
+            await sendTeacherList(chatId);
         } else if (data === 'active_permissions') {
             await sendActivePermissions(chatId);
         } else if (data === 'history') {
@@ -210,15 +212,18 @@ async function sendTelegramMenu(chatId) {
                     { text: '➕ Tambah Guru', callback_data: 'add_teacher' }
                 ],
                 [
-                    { text: '📋 Sedang Izin', callback_data: 'active_permissions' },
-                    { text: '📜 Riwayat Izin', callback_data: 'history' }
+                    { text: '📋 Daftar Guru', callback_data: 'teacher_list' },
+                    { text: '� Sedang Izin', callback_data: 'active_permissions' }
                 ],
                 [
-                    { text: '🔧 Status Device', callback_data: 'device_status' },
-                    { text: '📝 System Logs', callback_data: 'logs' }
+                    { text: '� Riwayat Izin', callback_data: 'history' },
+                    { text: '� Status Device', callback_data: 'device_status' }
                 ],
                 [
-                    { text: '📊 Rekap Bulanan', callback_data: 'monthly_recap' },
+                    { text: '📝 System Logs', callback_data: 'logs' },
+                    { text: '📊 Rekap Bulanan', callback_data: 'monthly_recap' }
+                ],
+                [
                     { text: '🕐 Waktu WIB/WITA', callback_data: 'time' }
                 ]
             ]
@@ -233,6 +238,7 @@ Selamat datang! Pilih menu navigasi untuk mengelola data perizinan:
 
 ◆ 📊 Dashboard      ─ Statistik & ringkasan
 ◆ ➕ Tambah Guru    ─ Pendaftaran guru baru
+◆ 📋 Daftar Guru    ─ Lihat semua guru terdaftar
 ◆ 📋 Sedang Izin    ─ Monitoring guru di luar
 ◆ 📜 Riwayat Izin   ─ Log histori izin
 ◆ 🔧 Status Device  ─ Cek koneksi IoT
@@ -302,26 +308,26 @@ async function sendTelegramDashboard(chatId) {
             WHERE status = 'out'
         `);
 
-        const message = `ðŸ›ï¸ DASHBOARD PRESENSI GURU
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
-ðŸ“Š REKAPITULASI DATA PERIZINAN
+        const message = `🏛️ DASHBOARD PRESENSI GURU
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 REKAPITULASI DATA PERIZINAN
 
-ðŸ‘¥ Total Guru Terdaftar : ${totalTeachers[0].total}
-ðŸ“… Total Izin Hari Ini  : ${todayPermissions[0].total}
-ðŸ“† Total Izin Bulan Ini : ${monthPermissions[0].total}
+👥 Total Guru Terdaftar : ${totalTeachers[0].total}
+📅 Total Izin Hari Ini  : ${todayPermissions[0].total}
+📆 Total Izin Bulan Ini : ${monthPermissions[0].total}
 
-ï¿½ MONITORING AREA:
-ï¿½ðŸšª Guru Sedang Izin     : ${activePermissions[0].total} Orang
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
-ðŸ’¡ Data diperbarui secara otomatis dari IoT Node.`;
+🚨 MONITORING AREA:
+🚪 Guru Sedang Izin     : ${activePermissions[0].total} Orang
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 Data diperbarui secara otomatis dari IoT Node.`;
 
         const keyboard = {
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: 'ðŸ”„ Refresh', callback_data: 'dashboard' }],
-                    [{ text: 'ðŸ“‹ Guru Sedang Izin', callback_data: 'active_permissions' }],
-                    [{ text: 'ðŸ“œ Riwayat Izin', callback_data: 'history' }],
-                    [{ text: 'ðŸ”™ Kembali ke Menu', callback_data: 'back_to_menu' }]
+                    [{ text: '🔄 Refresh', callback_data: 'dashboard' }],
+                    [{ text: '📋 Guru Sedang Izin', callback_data: 'active_permissions' }],
+                    [{ text: '📜 Riwayat Izin', callback_data: 'history' }],
+                    [{ text: '🔙 Kembali ke Menu', callback_data: 'back_to_menu' }]
                 ]
             }
         };
@@ -641,9 +647,9 @@ async function sendPermissionHistory(chatId) {
         const keyboard = {
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: 'ðŸ”„ Refresh', callback_data: 'history' }],
-                    [{ text: 'ðŸ“Š Dashboard', callback_data: 'dashboard' }],
-                    [{ text: 'ðŸ”™ Kembali ke Menu', callback_data: 'back_to_menu' }]
+                    [{ text: '🔄 Refresh', callback_data: 'history' }],
+                    [{ text: '📊 Dashboard', callback_data: 'dashboard' }],
+                    [{ text: '🔙 Kembali ke Menu', callback_data: 'back_to_menu' }]
                 ]
             }
         };
@@ -662,9 +668,9 @@ async function sendPermissionHistory(chatId) {
             day: 'numeric'
         });
 
-        let message = `ðŸ“œ RIWAYAT PERIZINAN GURU (20 TERAKHIR)
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
-ðŸ“… ${dateHeader} (WITA)
+        let message = `📜 RIWAYAT PERIZINAN GURU (20 TERAKHIR)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📅 ${dateHeader} (WITA)
 
 `;
 
@@ -694,16 +700,16 @@ async function sendPermissionHistory(chatId) {
                     durationText = `${Math.round(p.duration_minutes)} mnt`;
                 }
 
-                message += `ðŸ‘¤ ${p.full_name}\n`;
-                message += ` â”” â±ï¸ ${checkOutTime} âž” ${checkInTime} (${durationText})\n\n`;
+                message += `👤 ${p.full_name}\n`;
+                message += ` └ ⏱️ ${checkOutTime} ➔ ${checkInTime} (${durationText})\n\n`;
             } else {
-                message += `ðŸ‘¤ ${p.full_name}\n`;
-                message += ` â”” â±ï¸ ${checkOutTime} âž” Belum Kembali\n\n`;
+                message += `👤 ${p.full_name}\n`;
+                message += ` └ ⏱️ ${checkOutTime} ➔ Belum Kembali\n\n`;
             }
         });
 
-        message += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
-ðŸ“Š Total: ${permissions.length} Transaksi Terakhir (Selesai/Kembali)`;
+        message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 Total: ${permissions.length} Transaksi Terakhir (Selesai/Kembali)`;
 
         await telegramBot.sendMessage(chatId, message, { parse_mode: 'Markdown', ...keyboard });
     } catch (error) {
@@ -718,9 +724,9 @@ async function sendDeviceStatus(chatId) {
         const keyboard = {
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: 'ðŸ”„ Refresh', callback_data: 'device_status' }],
-                    [{ text: 'ðŸ“Š Dashboard', callback_data: 'dashboard' }],
-                    [{ text: 'ðŸ”™ Kembali ke Menu', callback_data: 'back_to_menu' }]
+                    [{ text: '🔄 Refresh', callback_data: 'device_status' }],
+                    [{ text: '📊 Dashboard', callback_data: 'dashboard' }],
+                    [{ text: '🔙 Kembali ke Menu', callback_data: 'back_to_menu' }]
                 ]
             }
         };
@@ -732,7 +738,7 @@ async function sendDeviceStatus(chatId) {
 
         let message = '';
         devices.forEach(d => {
-            const networkStatus = d.status === 'online' ? 'ðŸŸ¢ ONLINE' : d.status === 'offline' ? 'ðŸ”´ OFFLINE' : 'ðŸŸ¡ ERROR';
+            const networkStatus = d.status === 'online' ? '🟢 ONLINE' : d.status === 'offline' ? '🔴 OFFLINE' : '🟡 ERROR';
             const lastSeen = d.last_seen ? d.last_seen.toLocaleString('id-ID', {
                 timeZone: 'Asia/Makassar',
                 day: '2-digit',
@@ -745,18 +751,18 @@ async function sendDeviceStatus(chatId) {
             }).replace(',', '') : 'N/A';
             
             const statusMessage = d.status === 'online' 
-                ? 'âœ… Perangkat terhubung dan siap memproses RFID.' 
+                ? '✅ Perangkat terhubung dan siap memproses RFID.' 
                 : d.status === 'offline' 
-                    ? 'âŒ Perangkat tidak terhubung. Silakan periksa koneksi.' 
-                    : 'âš ï¸ Perangkat mengalami error.';
+                    ? '❌ Perangkat tidak terhubung. Silakan periksa koneksi.' 
+                    : '⚠️ Perangkat mengalami error.';
 
-            message += `ðŸ”§ MONITORING PERANGKAT IoT
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
-ðŸ“¡ Device Name : ${d.device_name}
-ðŸŸ¢ Network     : ${networkStatus}
-ðŸŒ IP Address  : ${d.ip_address || 'N/A'}
-ðŸ•’ Last Heartbeat : ${lastSeen} WITA
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+            message += `🔧 MONITORING PERANGKAT IoT
+━━━━━━━━━━━━━━━━━━━━━━━━━
+📡 Device Name : ${d.device_name}
+🟢 Network     : ${networkStatus}
+🌐 IP Address  : ${d.ip_address || 'N/A'}
+🕒 Last Heartbeat : ${lastSeen} WITA
+━━━━━━━━━━━━━━━━━━━━━━━━━
 ${statusMessage}
 
 `;
@@ -779,9 +785,9 @@ async function sendLogs(chatId) {
         const keyboard = {
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: 'ðŸ”„ Refresh', callback_data: 'logs' }],
-                    [{ text: 'ðŸ“Š Dashboard', callback_data: 'dashboard' }],
-                    [{ text: 'ðŸ”™ Kembali ke Menu', callback_data: 'back_to_menu' }]
+                    [{ text: '🔄 Refresh', callback_data: 'logs' }],
+                    [{ text: '📊 Dashboard', callback_data: 'dashboard' }],
+                    [{ text: '🔙 Kembali ke Menu', callback_data: 'back_to_menu' }]
                 ]
             }
         };
@@ -800,9 +806,9 @@ async function sendLogs(chatId) {
             day: 'numeric'
         });
 
-        let message = `ðŸ“ RIWAYAT LOG RFID (20 TERAKHIR)
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
-ðŸ“… ${dateHeader} (WITA)
+        let message = `📝 RIWAYAT LOG RFID (20 TERAKHIR)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📅 ${dateHeader} (WITA)
 
 `;
 
@@ -817,26 +823,77 @@ async function sendLogs(chatId) {
 
             let icon, actionText;
             if (l.action === 'check_out') {
-                icon = 'ï¿½';
+                icon = '🔴';
                 actionText = 'Keluar';
             } else if (l.action === 'check_in') {
-                icon = 'ðŸŸ¢';
+                icon = '🟢';
                 actionText = 'Masuk ';
             } else {
-                icon = 'âš ï¸';
+                icon = '⚠️';
                 actionText = 'Unknown';
             }
 
             const errorSuffix = (l.action !== 'check_in' && l.action !== 'check_out') ? ' (Error)' : '';
-            message += `${icon} [${time}] ${actionText} â€¢ \`${l.rfid_id}\`${errorSuffix}\n`;
+            message += `${icon} [${time}] ${actionText} • \`${l.rfid_id}\`${errorSuffix}\n`;
         });
 
-        message += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
-ðŸ” Filter: Success & Error System Logs`;
+        message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 Filter: Success & Error System Logs`;
 
         await telegramBot.sendMessage(chatId, message, { parse_mode: 'Markdown', ...keyboard });
     } catch (error) {
         console.error('Logs error:', error);
+    }
+}
+
+async function sendTeacherList(chatId) {
+    try {
+        const [teachers] = await db.query(`
+            SELECT id, full_name, employee_type, rfid_id, phone_number, is_active
+            FROM teachers
+            ORDER BY full_name ASC
+        `);
+
+        const keyboard = {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: '🔄 Refresh', callback_data: 'teacher_list' }],
+                    [{ text: '📊 Dashboard', callback_data: 'dashboard' }],
+                    [{ text: '🔙 Kembali ke Menu', callback_data: 'back_to_menu' }]
+                ]
+            }
+        };
+
+        if (teachers.length === 0) {
+            await telegramBot.sendMessage(chatId, '📋 DAFTAR GURU\n━━━━━━━━━━━━━━━━━━━━━━━━━\n❌ Tidak ada guru terdaftar.', keyboard);
+            return;
+        }
+
+        let message = `📋 DAFTAR GURU TERDAFTAR
+━━━━━━━━━━━━━━━━━━━━━━━━━
+👥 Total: ${teachers.length} Guru
+
+`;
+
+        teachers.forEach((t, index) => {
+            const status = t.is_active ? '✅ Aktif' : '❌ Non-Aktif';
+            const phone = t.phone_number || '-';
+            
+            message += `${index + 1}. ${t.full_name}
+   ├─ 📋 Jenis: ${t.employee_type}
+   ├─ 🏷️ RFID: ${t.rfid_id || '-'}
+   ├─ 📱 HP: ${phone}
+   └─ 📌 Status: ${status}
+
+`;
+        });
+
+        message += `━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 Data diperbarui secara otomatis.`;
+
+        await telegramBot.sendMessage(chatId, message, { parse_mode: 'Markdown', ...keyboard });
+    } catch (error) {
+        console.error('Teacher list error:', error);
     }
 }
 
@@ -1209,10 +1266,10 @@ async function processMonthlyRecap(chatId, text) {
             contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         });
 
-        await telegramBot.sendMessage(chatId, `âœ… Rekap bulanan ${month}/${year} berhasil dikirim!`);
+        await telegramBot.sendMessage(chatId, `✅ Rekap bulanan ${month}/${year} berhasil dikirim!`);
     } catch (error) {
         console.error('Monthly recap error:', error);
-        await telegramBot.sendMessage(chatId, 'âŒ Gagal membuat rekap bulanan. Terjadi kesalahan sistem.');
+        await telegramBot.sendMessage(chatId, '❌ Gagal membuat rekap bulanan. Terjadi kesalahan sistem.');
     }
 }
 
@@ -1458,7 +1515,7 @@ async function checkAutoReturn() {
         console.log(`[Auto-Return] Config - RFID List: [${rfidList.join(', ')}], Min: ${minMinutes}, Max: ${maxMinutes}`);
 
         if (rfidList.length === 0) {
-            console.log(`[Auto-Return] âš ï¸ No RFID IDs configured in AUTO_RETURN_RFID_IDS`);
+            console.log(`[Auto-Return] ⚠️ No RFID IDs configured in AUTO_RETURN_RFID_IDS`);
             return; // No auto-return configured
         }
 
@@ -1525,7 +1582,7 @@ async function checkAutoReturn() {
             const shouldAutoReturn = now >= autoReturnTime;
 
             if (shouldAutoReturn) {
-                console.log(`[Auto-Return] âœ… Auto-checking in: ${permission.full_name} (${durationMinutes} minutes)`);
+                console.log(`[Auto-Return] ✅ Auto-checking in: ${permission.full_name} (${durationMinutes} minutes)`);
 
                 // Check current status before updating
                 const [currentStatus] = await db.query(
@@ -1592,7 +1649,7 @@ async function checkAutoReturn() {
 
                 console.log(`[Auto-Return] Successfully auto-checked in: ${permission.full_name}`);
             } else {
-                console.log(`[Auto-Return] â³ Not yet time for ${permission.full_name} (duration ${durationMinutes} not in range ${minMinutes}-${maxMinutes === 0 ? 'unlimited' : maxMinutes})`);
+                console.log(`[Auto-Return] ⏳ Not yet time for ${permission.full_name} (duration ${durationMinutes} not in range ${minMinutes}-${maxMinutes === 0 ? 'unlimited' : maxMinutes})`);
             }
         }
     } catch (error) {
