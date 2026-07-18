@@ -160,13 +160,28 @@
 
                 <!-- Teachers Page -->
                 <div id="teachersPage" class="page">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <h2 class="page-title"><i class="fas fa-users"></i> Data Guru</h2>
                         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTeacherModal">
                             <i class="fas fa-plus"></i> Tambah Guru
                         </button>
                     </div>
                     <div class="card">
+                        <div class="card-header">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h5 class="mb-0"><i class="fas fa-search"></i> Cari Guru</h5>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="teacherSearchInput" placeholder="Cari berdasarkan nama, RFID, atau jenis...">
+                                        <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table">
@@ -184,6 +199,10 @@
                                     <tbody id="teachersTable">
                                     </tbody>
                                 </table>
+                            </div>
+                            <div id="noResultsMessage" class="text-center py-4" style="display: none;">
+                                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Tidak ada guru yang ditemukan dengan kata kunci tersebut.</p>
                             </div>
                         </div>
                     </div>

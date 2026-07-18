@@ -218,56 +218,112 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Load Teachers
+    let allTeachers = []; // Store all teachers globally for search
+    
     function loadTeachers() {
         fetch('/api/teachers')
             .then(response => response.json())
             .then(data => {
+                allTeachers = data; // Store data for search
                 const tbody = document.getElementById('teachersTable');
                 const filterSelect = document.getElementById('filterTeacher');
                 
-                let html = '';
-                let filterHtml = '<option value="">Semua Guru</option>';
+                displayTeachers(data, tbody);
                 
-                data.forEach((teacher, index) => {
-                    html += `
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td><code>${teacher.rfid_id}</code></td>
-                            <td>${teacher.full_name}</td>
-                            <td>${teacher.employee_type}</td>
-                            <td>${teacher.phone_number || '-'}</td>
-                            <td>${teacher.telegram_chat_id || '-'}</td>
-                            <td>
-                                <button class="btn btn-sm btn-info edit-teacher" data-id="${teacher.id}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn btn-sm btn-danger delete-teacher" data-id="${teacher.id}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                    
+                let filterHtml = '<option value="">Semua Guru</option>';
+                data.forEach(teacher => {
                     filterHtml += `<option value="${teacher.id}">${teacher.full_name}</option>`;
                 });
-                
-                tbody.innerHTML = html || '<tr><td colspan="7" class="text-center">Belum ada data guru</td></tr>';
                 filterSelect.innerHTML = filterHtml;
-                
-                // Add event listeners for edit/delete
-                document.querySelectorAll('.edit-teacher').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        editTeacher(this.getAttribute('data-id'));
-                    });
-                });
-                
-                document.querySelectorAll('.delete-teacher').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        deleteTeacher(this.getAttribute('data-id'));
-                    });
-                });
             })
             .catch(error => console.error('Error loading teachers:', error));
+    }
+
+    // Display teachers in table
+    function displayTeachers(teachers, tbody) {
+        let html = '';
+        
+        teachers.forEach((teacher, index) => {
+            html += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td><code>${teacher.rfid_id}</code></td>
+                    <td>${teacher.full_name}</td>
+                    <td>${teacher.employee_type}</td>
+                    <td>${teacher.phone_number || '-'}</td>
+                    <td>${teacher.telegram_chat_id || '-'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info edit-teacher" data-id="${teacher.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-teacher" data-id="${teacher.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        tbody.innerHTML = html || '<tr><td colspan="7" class="text-center">Belum ada data guru</td></tr>';
+        
+        // Add event listeners for edit/delete
+        document.querySelectorAll('.edit-teacher').forEach(btn => {
+            btn.addEventListener('click', function() {
+                editTeacher(this.getAttribute('data-id'));
+            });
+        });
+        
+        document.querySelectorAll('.delete-teacher').forEach(btn => {
+            btn.addEventListener('click', function() {
+                deleteTeacher(this.getAttribute('data-id'));
+            });
+        });
+    }
+
+    // Search functionality
+    const searchInput = document.getElementById('teacherSearchInput');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const noResultsMessage = document.getElementById('noResultsMessage');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            filterTeachers(searchTerm);
+        });
+    }
+
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            filterTeachers('');
+        });
+    }
+
+    function filterTeachers(searchTerm) {
+        const tbody = document.getElementById('teachersTable');
+        
+        if (!searchTerm) {
+            displayTeachers(allTeachers, tbody);
+            noResultsMessage.style.display = 'none';
+            return;
+        }
+
+        const filteredTeachers = allTeachers.filter(teacher => {
+            return (
+                teacher.full_name.toLowerCase().includes(searchTerm) ||
+                teacher.rfid_id.toLowerCase().includes(searchTerm) ||
+                teacher.employee_type.toLowerCase().includes(searchTerm) ||
+                (teacher.phone_number && teacher.phone_number.includes(searchTerm))
+            );
+        });
+
+        if (filteredTeachers.length === 0) {
+            tbody.innerHTML = '';
+            noResultsMessage.style.display = 'block';
+        } else {
+            displayTeachers(filteredTeachers, tbody);
+            noResultsMessage.style.display = 'none';
+        }
     }
 
     // Add Teacher
