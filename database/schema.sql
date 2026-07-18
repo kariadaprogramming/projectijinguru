@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS permissions (
     duration_minutes INT,
     status ENUM('out', 'in', 'pending') DEFAULT 'out',
     notes TEXT,
+    auto_return_time DATETIME,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE
