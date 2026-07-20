@@ -144,6 +144,17 @@ telegramBot.on('callback_query', async (query) => {
             await sendDeviceStatus(chatId);
         } else if (data === 'logs') {
             await sendLogs(chatId);
+        } else if (data === 'recap') {
+            await handleRecap(chatId);
+        } else if (data === 'recap_daily') {
+            await startDailyRecapFlow(chatId);
+        } else if (data === 'recap_monthly') {
+            await startMonthlyRecapFlow(chatId);
+        } else if (data === 'recap_custom') {
+            await startCustomRecapFlow(chatId);
+        } else if (data === 'daily_today') {
+            const today = new Date().toISOString().split('T')[0];
+            await processDailyRecap(chatId, `REKAP_HARIAN:${today}`);
         } else if (data === 'monthly_recap') {
             await startMonthlyRecapFlow(chatId);
         } else if (data === 'time') {
@@ -194,6 +205,10 @@ telegramBot.on('message', async (msg) => {
             await processAddTeacherPhone(chatId, text);
         } else if (text && text.startsWith('REKAP:')) {
             await processMonthlyRecap(chatId, text);
+        } else if (text && text.startsWith('REKAP_HARIAN:')) {
+            await processDailyRecap(chatId, text);
+        } else if (text && text.startsWith('REKAP_CUSTOM:')) {
+            await processCustomRecap(chatId, text);
         } else if (text && text.startsWith('ADD_TEACHER:')) {
             await processAddTeacher(chatId, text);
         }
@@ -221,7 +236,7 @@ async function sendTelegramMenu(chatId) {
                 ],
                 [
                     { text: '📝 System Logs', callback_data: 'logs' },
-                    { text: '📊 Rekap Bulanan', callback_data: 'monthly_recap' }
+                    { text: '📊 Rekap Data', callback_data: 'recap' }
                 ],
                 [
                     { text: '🕐 Waktu WIB/WITA', callback_data: 'time' }
@@ -243,7 +258,7 @@ Selamat datang! Pilih menu navigasi untuk mengelola data perizinan:
 ◆ 📜 Riwayat Izin   ─ Log histori izin
 ◆ 🔧 Status Device  ─ Cek koneksi IoT
 ◆ 📝 System Logs    ─ Logs aktivitas
-◆ 📊 Rekap Bulanan  ─ Unduh laporan
+◆ 📊 Rekap Data    ─ Rekap harian/bulanan/custom
 ◆ 🕐 Waktu WIB/WITA ─ Cek jam aktif
 
 ━━━━
@@ -897,6 +912,69 @@ async function sendTeacherList(chatId) {
     }
 }
 
+// Recap Handler
+async function handleRecap(chatId) {
+    const keyboard = {
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: '📅 Rekap Harian', callback_data: 'recap_daily' }],
+                [{ text: '📊 Rekap Bulanan', callback_data: 'recap_monthly' }],
+                [{ text: '📆 Rekap Custom Range', callback_data: 'recap_custom' }],
+                [{ text: '❌ Batal', callback_data: 'back_to_menu' }]
+            ]
+        }
+    };
+
+    await telegramBot.sendMessage(chatId, `
+📊 *Rekap Data*
+
+Pilih tipe rekap:
+    `, { parse_mode: 'Markdown', ...keyboard });
+}
+
+// Daily Recap Handler
+async function startDailyRecapFlow(chatId) {
+    userStates[chatId] = { step: 'select_date' };
+
+    const keyboard = {
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: '📅 Hari Ini', callback_data: 'daily_today' }],
+                [{ text: '❌ Batal', callback_data: 'back_to_menu' }]
+            ]
+        }
+    };
+
+    await telegramBot.sendMessage(chatId, `
+📅 *Rekap Harian*
+
+Silakan kirim format tanggal:
+REKAP_HARIAN:YYYY-MM-DD
+
+Contoh:
+REKAP_HARIAN:2026-07-20 (untuk 20 Juli 2026)
+
+Atau pilih opsi di bawah:
+    `, { parse_mode: 'Markdown', ...keyboard });
+}
+
+// Custom Range Recap Handler
+async function startCustomRecapFlow(chatId) {
+    userStates[chatId] = { step: 'select_start_date' };
+
+    await telegramBot.sendMessage(chatId, `
+📆 *Rekap Custom Range*
+
+Silakan kirim format:
+REKAP_CUSTOM:YYYY-MM-DD:YYYY-MM-DD
+
+Contoh:
+REKAP_CUSTOM:2026-07-01:2026-07-05 (untuk 1-5 Juli 2026)
+
+Format: Tanggal Mulai : Tanggal Akhir
+    `);
+}
+
 // Monthly Recap Handler
 async function handleMonthlyRecap(chatId) {
     await telegramBot.sendMessage(chatId, `
@@ -1270,6 +1348,144 @@ async function processMonthlyRecap(chatId, text) {
     } catch (error) {
         console.error('Monthly recap error:', error);
         await telegramBot.sendMessage(chatId, '❌ Gagal membuat rekap bulanan. Terjadi kesalahan sistem.');
+    }
+}
+
+async function processDailyRecap(chatId, text) {
+    try {
+        const date = text.replace('REKAP_HARIAN:', '').trim();
+        
+        if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+            await telegramBot.sendMessage(chatId, 'Format salah. Gunakan format: REKAP_HARIAN:YYYY-MM-DD');
+            return;
+        }
+
+        const [permissions] = await db.query(`
+            SELECT p.*, t.full_name, t.employee_type
+            FROM permissions p
+            JOIN teachers t ON p.teacher_id = t.id
+            WHERE DATE(p.check_out_time) = ?
+            ORDER BY p.check_out_time DESC
+        `, [date]);
+
+        if (permissions.length === 0) {
+            await telegramBot.sendMessage(chatId, `Tidak ada data untuk tanggal ${date}`);
+            return;
+        }
+
+        const ExcelJS = require('exceljs');
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Rekap Harian');
+
+        worksheet.columns = [
+            { header: 'No', key: 'no', width: 5 },
+            { header: 'Nama', key: 'name', width: 30 },
+            { header: 'Jenis', key: 'type', width: 15 },
+            { header: 'Waktu Keluar', key: 'check_out', width: 20 },
+            { header: 'Waktu Masuk', key: 'check_in', width: 20 },
+            { header: 'Durasi (Menit)', key: 'duration', width: 15 },
+            { header: 'Status', key: 'status', width: 15 }
+        ];
+
+        permissions.forEach((p, index) => {
+            worksheet.addRow({
+                no: index + 1,
+                name: p.full_name,
+                type: p.employee_type,
+                check_out: p.check_out_time ? p.check_out_time.toLocaleString() : '-',
+                check_in: p.check_in_time ? p.check_in_time.toLocaleString() : '-',
+                duration: formatDuration(p.duration_minutes),
+                status: p.status === 'out' ? 'Keluar' : 'Kembali'
+            });
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+
+        await telegramBot.sendDocument(chatId, Buffer.from(buffer), {
+            filename: `rekap_harian_${date}.xlsx`,
+            contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+
+        await telegramBot.sendMessage(chatId, `✅ Rekap harian ${date} berhasil dikirim!`);
+    } catch (error) {
+        console.error('Daily recap error:', error);
+        await telegramBot.sendMessage(chatId, '❌ Gagal membuat rekap harian. Terjadi kesalahan sistem.');
+    }
+}
+
+async function processCustomRecap(chatId, text) {
+    try {
+        const data = text.replace('REKAP_CUSTOM:', '').trim().split(':');
+        
+        if (data.length !== 2) {
+            await telegramBot.sendMessage(chatId, 'Format salah. Gunakan format: REKAP_CUSTOM:YYYY-MM-DD:YYYY-MM-DD');
+            return;
+        }
+
+        const startDate = data[0].trim();
+        const endDate = data[1].trim();
+
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
+            await telegramBot.sendMessage(chatId, 'Format tanggal salah. Gunakan format YYYY-MM-DD');
+            return;
+        }
+
+        if (startDate > endDate) {
+            await telegramBot.sendMessage(chatId, 'Tanggal mulai tidak boleh lebih besar dari tanggal akhir');
+            return;
+        }
+
+        const [permissions] = await db.query(`
+            SELECT p.*, t.full_name, t.employee_type
+            FROM permissions p
+            JOIN teachers t ON p.teacher_id = t.id
+            WHERE DATE(p.check_out_time) >= ?
+            AND DATE(p.check_out_time) <= ?
+            ORDER BY p.check_out_time ASC
+        `, [startDate, endDate]);
+
+        if (permissions.length === 0) {
+            await telegramBot.sendMessage(chatId, `Tidak ada data untuk rentang tanggal ${startDate} sampai ${endDate}`);
+            return;
+        }
+
+        const ExcelJS = require('exceljs');
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Rekap Custom');
+
+        worksheet.columns = [
+            { header: 'No', key: 'no', width: 5 },
+            { header: 'Nama', key: 'name', width: 30 },
+            { header: 'Jenis', key: 'type', width: 15 },
+            { header: 'Waktu Keluar', key: 'check_out', width: 20 },
+            { header: 'Waktu Masuk', key: 'check_in', width: 20 },
+            { header: 'Durasi (Menit)', key: 'duration', width: 15 },
+            { header: 'Status', key: 'status', width: 15 }
+        ];
+
+        permissions.forEach((p, index) => {
+            worksheet.addRow({
+                no: index + 1,
+                name: p.full_name,
+                type: p.employee_type,
+                check_out: p.check_out_time ? p.check_out_time.toLocaleString() : '-',
+                check_in: p.check_in_time ? p.check_in_time.toLocaleString() : '-',
+                duration: formatDuration(p.duration_minutes),
+                status: p.status === 'out' ? 'Keluar' : 'Kembali'
+            });
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+
+        await telegramBot.sendDocument(chatId, Buffer.from(buffer), {
+            filename: `rekap_custom_${startDate}_to_${endDate}.xlsx`,
+            contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+
+        await telegramBot.sendMessage(chatId, `✅ Rekap custom ${startDate} sampai ${endDate} berhasil dikirim!`);
+    } catch (error) {
+        console.error('Custom recap error:', error);
+        await telegramBot.sendMessage(chatId, '❌ Gagal membuat rekap custom. Terjadi kesalahan sistem.');
     }
 }
 
@@ -1933,6 +2149,47 @@ app.get('/api/permissions/monthly/:year/:month', async (req, res) => {
     }
 });
 
+// Get Daily Permissions
+app.get('/api/permissions/daily/:date', async (req, res) => {
+    try {
+        const { date } = req.params;
+
+        const [permissions] = await db.query(`
+            SELECT p.*, t.full_name, t.employee_type
+            FROM permissions p
+            JOIN teachers t ON p.teacher_id = t.id
+            WHERE DATE(p.check_out_time) = ?
+            ORDER BY p.check_out_time DESC
+        `, [date]);
+
+        res.json(permissions);
+    } catch (error) {
+        console.error('Get daily permissions error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Get Custom Range Permissions
+app.get('/api/permissions/custom/:startDate/:endDate', async (req, res) => {
+    try {
+        const { startDate, endDate } = req.params;
+
+        const [permissions] = await db.query(`
+            SELECT p.*, t.full_name, t.employee_type
+            FROM permissions p
+            JOIN teachers t ON p.teacher_id = t.id
+            WHERE DATE(p.check_out_time) >= ?
+            AND DATE(p.check_out_time) <= ?
+            ORDER BY p.check_out_time ASC
+        `, [startDate, endDate]);
+
+        res.json(permissions);
+    } catch (error) {
+        console.error('Get custom range permissions error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // Export Monthly Excel
 app.get('/api/permissions/monthly/:year/:month/export/excel', async (req, res) => {
     try {
@@ -1980,6 +2237,107 @@ app.get('/api/permissions/monthly/:year/:month/export/excel', async (req, res) =
         res.end();
     } catch (error) {
         console.error('Export monthly Excel error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Export Daily Excel
+app.get('/api/permissions/daily/:date/export/excel', async (req, res) => {
+    try {
+        const { date } = req.params;
+
+        const [permissions] = await db.query(`
+            SELECT p.*, t.full_name, t.employee_type
+            FROM permissions p
+            JOIN teachers t ON p.teacher_id = t.id
+            WHERE DATE(p.check_out_time) = ?
+            ORDER BY p.check_out_time DESC
+        `, [date]);
+
+        const ExcelJS = require('exceljs');
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Rekap Harian');
+
+        worksheet.columns = [
+            { header: 'No', key: 'no', width: 5 },
+            { header: 'Nama', key: 'name', width: 30 },
+            { header: 'Jenis', key: 'type', width: 15 },
+            { header: 'Waktu Keluar', key: 'check_out', width: 20 },
+            { header: 'Waktu Masuk', key: 'check_in', width: 20 },
+            { header: 'Durasi (Menit)', key: 'duration', width: 15 },
+            { header: 'Status', key: 'status', width: 15 }
+        ];
+
+        permissions.forEach((p, index) => {
+            worksheet.addRow({
+                no: index + 1,
+                name: p.full_name,
+                type: p.employee_type,
+                check_out: p.check_out_time ? p.check_out_time.toLocaleString() : '-',
+                check_in: p.check_in_time ? p.check_in_time.toLocaleString() : '-',
+                duration: formatDuration(p.duration_minutes),
+                status: p.status === 'out' ? 'Keluar' : 'Kembali'
+            });
+        });
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename=rekap_harian_${date}.xlsx`);
+
+        await workbook.xlsx.write(res);
+        res.end();
+    } catch (error) {
+        console.error('Export daily Excel error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Export Custom Range Excel
+app.get('/api/permissions/custom/:startDate/:endDate/export/excel', async (req, res) => {
+    try {
+        const { startDate, endDate } = req.params;
+
+        const [permissions] = await db.query(`
+            SELECT p.*, t.full_name, t.employee_type
+            FROM permissions p
+            JOIN teachers t ON p.teacher_id = t.id
+            WHERE DATE(p.check_out_time) >= ?
+            AND DATE(p.check_out_time) <= ?
+            ORDER BY p.check_out_time ASC
+        `, [startDate, endDate]);
+
+        const ExcelJS = require('exceljs');
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Rekap Custom');
+
+        worksheet.columns = [
+            { header: 'No', key: 'no', width: 5 },
+            { header: 'Nama', key: 'name', width: 30 },
+            { header: 'Jenis', key: 'type', width: 15 },
+            { header: 'Waktu Keluar', key: 'check_out', width: 20 },
+            { header: 'Waktu Masuk', key: 'check_in', width: 20 },
+            { header: 'Durasi (Menit)', key: 'duration', width: 15 },
+            { header: 'Status', key: 'status', width: 15 }
+        ];
+
+        permissions.forEach((p, index) => {
+            worksheet.addRow({
+                no: index + 1,
+                name: p.full_name,
+                type: p.employee_type,
+                check_out: p.check_out_time ? p.check_out_time.toLocaleString() : '-',
+                check_in: p.check_in_time ? p.check_in_time.toLocaleString() : '-',
+                duration: formatDuration(p.duration_minutes),
+                status: p.status === 'out' ? 'Keluar' : 'Kembali'
+            });
+        });
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename=rekap_custom_${startDate}_to_${endDate}.xlsx`);
+
+        await workbook.xlsx.write(res);
+        res.end();
+    } catch (error) {
+        console.error('Export custom range Excel error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -2046,6 +2404,137 @@ app.get('/api/permissions/monthly/:year/:month/export/word', async (req, res) =>
         res.send(buffer);
     } catch (error) {
         console.error('Export monthly Word error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Export Daily Word
+app.get('/api/permissions/daily/:date/export/word', async (req, res) => {
+    try {
+        const { date } = req.params;
+
+        const [permissions] = await db.query(`
+            SELECT p.*, t.full_name, t.employee_type
+            FROM permissions p
+            JOIN teachers t ON p.teacher_id = t.id
+            WHERE DATE(p.check_out_time) = ?
+            ORDER BY p.check_out_time DESC
+        `, [date]);
+
+        const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, BorderStyle } = require('docx');
+        const doc = new Document({
+            sections: [{
+                properties: {},
+                children: [
+                    new Paragraph({
+                        text: `Rekap Harian - ${date}`,
+                        heading: 'Heading1',
+                        spacing: { after: 200 }
+                    }),
+                    new Table({
+                        rows: [
+                            new TableRow({
+                                children: [
+                                    new TableCell({ children: [new Paragraph('No')] }),
+                                    new TableCell({ children: [new Paragraph('Nama')] }),
+                                    new TableCell({ children: [new Paragraph('Jenis')] }),
+                                    new TableCell({ children: [new Paragraph('Waktu Keluar')] }),
+                                    new TableCell({ children: [new Paragraph('Waktu Masuk')] }),
+                                    new TableCell({ children: [new Paragraph('Durasi (Menit)')] }),
+                                    new TableCell({ children: [new Paragraph('Status')] })
+                                ]
+                            }),
+                            ...permissions.map((p, index) => new TableRow({
+                                children: [
+                                    new TableCell({ children: [new Paragraph(String(index + 1))] }),
+                                    new TableCell({ children: [new Paragraph(p.full_name)] }),
+                                    new TableCell({ children: [new Paragraph(p.employee_type)] }),
+                                    new TableCell({ children: [new Paragraph(p.check_out_time ? p.check_out_time.toLocaleString() : '-')] }),
+                                    new TableCell({ children: [new Paragraph(p.check_in_time ? p.check_in_time.toLocaleString() : '-')] }),
+                                    new TableCell({ children: [new Paragraph(formatDuration(p.duration_minutes))] }),
+                                    new TableCell({ children: [new Paragraph(p.status === 'out' ? 'Keluar' : 'Kembali')] })
+                                ]
+                            }))
+                        ]
+                    })
+                ]
+            }]
+        });
+
+        const buffer = await Packer.toBuffer(doc);
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Disposition', `attachment; filename=rekap_harian_${date}.docx`);
+
+        res.send(buffer);
+    } catch (error) {
+        console.error('Export daily Word error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Export Custom Range Word
+app.get('/api/permissions/custom/:startDate/:endDate/export/word', async (req, res) => {
+    try {
+        const { startDate, endDate } = req.params;
+
+        const [permissions] = await db.query(`
+            SELECT p.*, t.full_name, t.employee_type
+            FROM permissions p
+            JOIN teachers t ON p.teacher_id = t.id
+            WHERE DATE(p.check_out_time) >= ?
+            AND DATE(p.check_out_time) <= ?
+            ORDER BY p.check_out_time ASC
+        `, [startDate, endDate]);
+
+        const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, BorderStyle } = require('docx');
+        const doc = new Document({
+            sections: [{
+                properties: {},
+                children: [
+                    new Paragraph({
+                        text: `Rekap Custom - ${startDate} to ${endDate}`,
+                        heading: 'Heading1',
+                        spacing: { after: 200 }
+                    }),
+                    new Table({
+                        rows: [
+                            new TableRow({
+                                children: [
+                                    new TableCell({ children: [new Paragraph('No')] }),
+                                    new TableCell({ children: [new Paragraph('Nama')] }),
+                                    new TableCell({ children: [new Paragraph('Jenis')] }),
+                                    new TableCell({ children: [new Paragraph('Waktu Keluar')] }),
+                                    new TableCell({ children: [new Paragraph('Waktu Masuk')] }),
+                                    new TableCell({ children: [new Paragraph('Durasi (Menit)')] }),
+                                    new TableCell({ children: [new Paragraph('Status')] })
+                                ]
+                            }),
+                            ...permissions.map((p, index) => new TableRow({
+                                children: [
+                                    new TableCell({ children: [new Paragraph(String(index + 1))] }),
+                                    new TableCell({ children: [new Paragraph(p.full_name)] }),
+                                    new TableCell({ children: [new Paragraph(p.employee_type)] }),
+                                    new TableCell({ children: [new Paragraph(p.check_out_time ? p.check_out_time.toLocaleString() : '-')] }),
+                                    new TableCell({ children: [new Paragraph(p.check_in_time ? p.check_in_time.toLocaleString() : '-')] }),
+                                    new TableCell({ children: [new Paragraph(formatDuration(p.duration_minutes))] }),
+                                    new TableCell({ children: [new Paragraph(p.status === 'out' ? 'Keluar' : 'Kembali')] })
+                                ]
+                            }))
+                        ]
+                    })
+                ]
+            }]
+        });
+
+        const buffer = await Packer.toBuffer(doc);
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Disposition', `attachment; filename=rekap_custom_${startDate}_to_${endDate}.docx`);
+
+        res.send(buffer);
+    } catch (error) {
+        console.error('Export custom range Word error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });

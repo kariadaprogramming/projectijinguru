@@ -544,7 +544,111 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         document.getElementById('monthSelect').value = new Date().getMonth() + 1;
+        
+        // Set today's date for daily recap
+        document.getElementById('dailyDate').value = new Date().toISOString().split('T')[0];
     }
+
+    // Recap type switching
+    document.getElementById('recapType').addEventListener('change', function() {
+        const recapType = this.value;
+        
+        // Hide all options
+        document.getElementById('dailyOptions').style.display = 'none';
+        document.getElementById('monthlyOptions').style.display = 'none';
+        document.getElementById('customOptions').style.display = 'none';
+        
+        // Show selected option
+        if (recapType === 'daily') {
+            document.getElementById('dailyOptions').style.display = 'block';
+        } else if (recapType === 'monthly') {
+            document.getElementById('monthlyOptions').style.display = 'block';
+        } else if (recapType === 'custom') {
+            document.getElementById('customOptions').style.display = 'block';
+        }
+    });
+
+    // Load Daily Recap
+    document.getElementById('loadDailyBtn').addEventListener('click', function() {
+        const date = document.getElementById('dailyDate').value;
+        
+        if (!date) {
+            alert('Silakan pilih tanggal');
+            return;
+        }
+        
+        fetch(`/api/permissions/daily/${date}`)
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('monthlyTableBody');
+                
+                let html = '';
+                data.forEach((p, index) => {
+                    const statusBadge = p.status === 'out' 
+                        ? '<span class="badge badge-warning">Keluar</span>' 
+                        : '<span class="badge badge-success">Kembali</span>';
+                    
+                    html += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${p.full_name}</td>
+                            <td>${p.employee_type}</td>
+                            <td>${formatDateTime(p.check_out_time)}</td>
+                            <td>${p.check_in_time ? formatDateTime(p.check_in_time) : '-'}</td>
+                            <td>${formatDuration(p.duration_minutes)}</td>
+                            <td>${statusBadge}</td>
+                        </tr>
+                    `;
+                });
+                
+                tbody.innerHTML = html || '<tr><td colspan="7" class="text-center">Tidak ada data untuk tanggal ini</td></tr>';
+            })
+            .catch(error => console.error('Error loading daily permissions:', error));
+    });
+
+    // Load Custom Range Recap
+    document.getElementById('loadCustomBtn').addEventListener('click', function() {
+        const startDate = document.getElementById('customStartDate').value;
+        const endDate = document.getElementById('customEndDate').value;
+        
+        if (!startDate || !endDate) {
+            alert('Silakan pilih tanggal mulai dan tanggal akhir');
+            return;
+        }
+        
+        if (startDate > endDate) {
+            alert('Tanggal mulai tidak boleh lebih besar dari tanggal akhir');
+            return;
+        }
+        
+        fetch(`/api/permissions/custom/${startDate}/${endDate}`)
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('monthlyTableBody');
+                
+                let html = '';
+                data.forEach((p, index) => {
+                    const statusBadge = p.status === 'out' 
+                        ? '<span class="badge badge-warning">Keluar</span>' 
+                        : '<span class="badge badge-success">Kembali</span>';
+                    
+                    html += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${p.full_name}</td>
+                            <td>${p.employee_type}</td>
+                            <td>${formatDateTime(p.check_out_time)}</td>
+                            <td>${p.check_in_time ? formatDateTime(p.check_in_time) : '-'}</td>
+                            <td>${formatDuration(p.duration_minutes)}</td>
+                            <td>${statusBadge}</td>
+                        </tr>
+                    `;
+                });
+                
+                tbody.innerHTML = html || '<tr><td colspan="7" class="text-center">Tidak ada data untuk rentang tanggal ini</td></tr>';
+            })
+            .catch(error => console.error('Error loading custom range permissions:', error));
+    });
 
     document.getElementById('loadMonthlyBtn').addEventListener('click', function() {
         const month = document.getElementById('monthSelect').value;
@@ -579,18 +683,56 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error loading monthly permissions:', error));
     });
 
-    // Export Monthly Excel
-    document.getElementById('exportMonthlyExcelBtn').addEventListener('click', function() {
-        const month = document.getElementById('monthSelect').value;
-        const year = document.getElementById('yearSelect').value;
-        window.location.href = `/api/permissions/monthly/${year}/${month}/export/excel`;
+    // Export Excel (dynamic based on recap type)
+    document.getElementById('exportExcelBtn').addEventListener('click', function() {
+        const recapType = document.getElementById('recapType').value;
+        
+        if (recapType === 'daily') {
+            const date = document.getElementById('dailyDate').value;
+            if (!date) {
+                alert('Silakan pilih tanggal');
+                return;
+            }
+            window.location.href = `/api/permissions/daily/${date}/export/excel`;
+        } else if (recapType === 'monthly') {
+            const month = document.getElementById('monthSelect').value;
+            const year = document.getElementById('yearSelect').value;
+            window.location.href = `/api/permissions/monthly/${year}/${month}/export/excel`;
+        } else if (recapType === 'custom') {
+            const startDate = document.getElementById('customStartDate').value;
+            const endDate = document.getElementById('customEndDate').value;
+            if (!startDate || !endDate) {
+                alert('Silakan pilih tanggal mulai dan tanggal akhir');
+                return;
+            }
+            window.location.href = `/api/permissions/custom/${startDate}/${endDate}/export/excel`;
+        }
     });
 
-    // Export Monthly Word
-    document.getElementById('exportMonthlyWordBtn').addEventListener('click', function() {
-        const month = document.getElementById('monthSelect').value;
-        const year = document.getElementById('yearSelect').value;
-        window.location.href = `/api/permissions/monthly/${year}/${month}/export/word`;
+    // Export Word (dynamic based on recap type)
+    document.getElementById('exportWordBtn').addEventListener('click', function() {
+        const recapType = document.getElementById('recapType').value;
+        
+        if (recapType === 'daily') {
+            const date = document.getElementById('dailyDate').value;
+            if (!date) {
+                alert('Silakan pilih tanggal');
+                return;
+            }
+            window.location.href = `/api/permissions/daily/${date}/export/word`;
+        } else if (recapType === 'monthly') {
+            const month = document.getElementById('monthSelect').value;
+            const year = document.getElementById('yearSelect').value;
+            window.location.href = `/api/permissions/monthly/${year}/${month}/export/word`;
+        } else if (recapType === 'custom') {
+            const startDate = document.getElementById('customStartDate').value;
+            const endDate = document.getElementById('customEndDate').value;
+            if (!startDate || !endDate) {
+                alert('Silakan pilih tanggal mulai dan tanggal akhir');
+                return;
+            }
+            window.location.href = `/api/permissions/custom/${startDate}/${endDate}/export/word`;
+        }
     });
 
     // Print Monthly
